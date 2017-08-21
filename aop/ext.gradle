@@ -1,0 +1,21 @@
+project.ext {
+    aspectjVersion = '1.8.10'
+    pluginVersion = '1.0.0'
+    Properties properties = new Properties()
+    if (project.file('local.properties').exists()) {
+        properties.load(project.file('local.properties').newDataInputStream())
+    }
+
+    def nRelease = 'nexus.releases'
+    def nSnapshot = 'nexus.snapshots'
+    def nUserName = 'nexus.username'
+    def nPassword = 'nexus.password'
+    def bUser = 'bintray.user'
+    def bAPIKey = 'bintray.apikey'
+    nexusReleases = properties.getProperty(nRelease, "")
+    nexusSnapshots = properties.getProperty(nSnapshot, "")
+    nexusUserName = properties.getProperty(nUserName, "")
+    nexusPassword = properties.getProperty(nPassword, "")
+    bintrayUser = properties.getProperty(bUser, "")
+    bintrayAPIKey = properties.getProperty(bAPIKey, "")
+}
