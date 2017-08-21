@@ -16,7 +16,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:2.2.3'
         //添加 android-gradle-plugin 依赖
-        classpath 'com.sensorsdata.analytics.android:android-gradle-plugin:1.0.6'
+        classpath 'com.sensorsdata.analytics.android:android-gradle-plugin2:1.0.0'
     }
 }
 
@@ -40,7 +40,7 @@ apply plugin: 'com.sensorsdata.analytics.android'
 dependencies {
    compile 'com.android.support:appcompat-v7:25.1.1'
    //添加 Sensors Analytics SDK 依赖
-   compile 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK:1.7.1'
+   compile 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK2:1.8.0'
 }
 ```
 
@@ -48,23 +48,7 @@ dependencies {
 ![](https://github.com/sensorsdata/sa-sdk-android-plugin/blob/master/screenshots/android_sdk_autotrack_2.png)
 
 *注*：
-1、在 project 级别的 gradle.properties 中添加如下配置：
-
-```android
-android.enableBuildCache=false
-```
-
-如下示例图：
-![](https://github.com/sensorsdata/sa-sdk-android-plugin/blob/master/screenshots/android_sdk_autotrack_5.png)
-
-如果开启 buildCache，Android Studio 会把依赖的 jar 或 arr 缓存到本地，并且把模块名称设置为 hash 值，导致 includeJarFilter 配置失效。
-
-2、目前全埋点不支持 Android Studio 的 instant run 特性，使用全埋点需要关闭该特性。
-
-如下示例图：
-![](https://github.com/sensorsdata/sa-sdk-android-plugin/blob/master/screenshots/android_sdk_autotrack_4.png)
-
-3、由于 SDK 会依赖 appcompat-v7 处理下面几个控件：
+1、由于 SDK 会依赖 appcompat-v7 处理下面几个控件：
 
 * android.support.v7.widget.SwitchCompat
 * android.support.v7.app.AlertDialog
@@ -75,20 +59,31 @@ android.enableBuildCache=false
 compile 'com.android.support:appcompat-v7:25.1.1'
 ```
 
+## 感谢
+[hugo](https://github.com/JakeWharton/hugo)
+[gradle_plugin_android_aspectjx](https://github.com/HujiangTechnology/gradle_plugin_android_aspectjx)
+[gradle-android-aspectj-plugin](https://github.com/uPhyca/gradle-android-aspectj-plugin)
+[tracklytics](https://github.com/orhanobut/tracklytics)
+
 ## To Learn More
 
 See our [full manual](http://www.sensorsdata.cn/manual/android_sdk.html)
 
 ## License
 
-
-Copyright 2016 firefly1126, Inc.
+Copyright 2015－2017 Sensors Data Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
 http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
