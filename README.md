@@ -55,8 +55,11 @@ compile 'com.android.support:appcompat-v7:25.1.1'
 
 ## 感谢
 [hugo](https://github.com/JakeWharton/hugo)
+
 [gradle_plugin_android_aspectjx](https://github.com/HujiangTechnology/gradle_plugin_android_aspectjx)
+
 [gradle-android-aspectj-plugin](https://github.com/uPhyca/gradle-android-aspectj-plugin)
+
 [tracklytics](https://github.com/orhanobut/tracklytics)
 
 ## To Learn More
