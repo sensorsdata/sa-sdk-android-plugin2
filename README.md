@@ -27,9 +27,6 @@ allprojects {
 }
 ```
 
-如下示例图：
-![](https://github.com/sensorsdata/sa-sdk-android-plugin/blob/master/screenshots/android_sdk_autotrack_1.png)
-
 （2）在 <font color=red size=4 > **主 module** </font>的 build.gradle 文件中添加 com.sensorsdata.analytics.android 插件、Sensors Analytics SDK 依赖及指定 weave 哪些 module：
 
 ```android
@@ -43,9 +40,6 @@ dependencies {
    compile 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK2:1.8.0'
 }
 ```
-
-如下示例图：
-![](https://github.com/sensorsdata/sa-sdk-android-plugin/blob/master/screenshots/android_sdk_autotrack_2.png)
 
 *注*：
 1、由于 SDK 会依赖 appcompat-v7 处理下面几个控件：
