@@ -18,8 +18,7 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
 
         project.dependencies {
             compile 'org.aspectj:aspectjrt:1.8.10'
-//      compile(name: 'SensorsAnalytics-runtime-release', ext: 'aar')
-            compile 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK-Runtime:1.0.1'
+            compile 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK-Runtime:1.0.2'
         }
 
         project.extensions.create("sensorsAnalytics", SensorsAnalyticsExtension)
