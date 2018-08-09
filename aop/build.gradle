@@ -28,12 +28,10 @@ dependencies {
         jcenter()
     }
 
-    compile gradleApi()
-    compile localGroovy()
+    implementation gradleApi()
+    implementation localGroovy()
 
-    compile 'com.android.tools.build:gradle:2.0.0'
-    compile "org.aspectj:aspectjtools:1.8.10"
-    compile "org.aspectj:aspectjrt:1.8.10"
+    implementation 'com.android.tools.build:gradle:3.0.0'
 }
 
 apply from: 'bintray.gradle'
