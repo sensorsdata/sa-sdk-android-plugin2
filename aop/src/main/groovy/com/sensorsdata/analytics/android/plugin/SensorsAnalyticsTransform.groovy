@@ -249,6 +249,7 @@ class SensorsAnalyticsTransform extends Transform {
      */
     private static File modifyClassFile(File dir, File classFile, File tempDir) {
         File modified = null
+        FileOutputStream outputStream = null
         try {
             String className = path2ClassName(classFile.absolutePath.replace(dir.absolutePath + File.separator, ""))
             if (isShouldModify(className)) {
@@ -260,13 +261,22 @@ class SensorsAnalyticsTransform extends Transform {
                         modified.delete()
                     }
                     modified.createNewFile()
-                    new FileOutputStream(modified).write(modifiedClassBytes)
+                    outputStream = new FileOutputStream(modified)
+                    outputStream.write(modifiedClassBytes)
                 }
             } else {
                 return classFile
             }
         } catch (Exception e) {
             e.printStackTrace()
+        } finally {
+            try {
+                if (outputStream != null) {
+                    outputStream.close()
+                }
+            } catch (Exception e) {
+                //ignore
+            }
         }
         return modified
     }
