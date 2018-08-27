@@ -120,7 +120,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
 
             @Override
             protected void onMethodExit(int opcode) {
-                super.onMethodEnter()
+                super.onMethodExit(opcode)
 
                 if (isSensorsDataIgnoreTrackOnClick) {
                     return
@@ -199,6 +199,15 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                     methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackDrawerClosed", "(Landroid/view/View;)V", false)
                     isHasTracked = true
                     return
+                }
+
+                if (mClassName == 'android/databinding/generated/callback/OnClickListener') {
+                    if (nameDesc == 'onClick(Landroid/view/View;)V') {
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackViewOnClick", "(Landroid/view/View;)V", false)
+                        isHasTracked = true
+                        return
+                    }
                 }
 
                 if (mClassName.startsWith('android')) {
