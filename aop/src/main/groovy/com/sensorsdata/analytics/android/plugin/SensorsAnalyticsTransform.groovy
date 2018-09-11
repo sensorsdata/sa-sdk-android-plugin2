@@ -149,6 +149,17 @@ class SensorsAnalyticsTransform extends Transform {
         }
     }
 
+    private static boolean isShouldModifyJar(String jarName) {
+        Iterator<String> iterator = exclude.iterator()
+        while (iterator.hasNext()) {
+            String packageName = iterator.next()
+            if (packageName == jarName) {
+                return false
+            }
+        }
+        return true
+    }
+
     private static boolean isShouldModify(String className) {
         Iterator<String> iterator = exclude.iterator()
         while (iterator.hasNext()) {
@@ -165,7 +176,9 @@ class SensorsAnalyticsTransform extends Transform {
      */
     private static File modifyJarFile(File jarFile, File tempDir) {
         if (jarFile) {
-            return modifyJar(jarFile, tempDir, true)
+            if (isShouldModifyJar(jarFile.getName())) {
+                return modifyJar(jarFile, tempDir, true)
+            }
 
         }
         return null
