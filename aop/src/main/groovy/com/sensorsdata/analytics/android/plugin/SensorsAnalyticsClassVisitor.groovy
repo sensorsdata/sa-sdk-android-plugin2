@@ -119,8 +119,8 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
             }
 
             @Override
-            protected void onMethodExit(int opcode) {
-                super.onMethodExit(opcode)
+            protected void onMethodEnter() {
+                super.onMethodEnter()
 
                 if (isSensorsDataIgnoreTrackOnClick) {
                     return
