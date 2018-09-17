@@ -27,6 +27,8 @@ import java.util.zip.ZipEntry
 class SensorsAnalyticsTransform extends Transform {
     private static Project project
     private static HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support']
+    private static HashSet<String> include = []
+    protected static boolean disableJar
 
     SensorsAnalyticsTransform(Project project) {
         this.project = project
@@ -79,9 +81,15 @@ class SensorsAnalyticsTransform extends Transform {
             outputProvider.deleteAll()
         }
 
-        HashSet<String> inputPackages = project.sensorsAnalytics.exclude
-        if (inputPackages != null) {
-            exclude.addAll(inputPackages)
+        disableJar = project.sensorsAnalytics.disableJar
+        HashSet<String> excludePackages = project.sensorsAnalytics.exclude
+        if (excludePackages != null) {
+            exclude.addAll(excludePackages)
+        }
+
+        HashSet<String> includePackages = project.sensorsAnalytics.include
+        if (includePackages != null) {
+            include.addAll(includePackages)
         }
 
         /**
@@ -106,9 +114,9 @@ class SensorsAnalyticsTransform extends Transform {
                 File dest = outputProvider.getContentLocation(destName + "_" + hexName, jarInput.contentTypes, jarInput.scopes, Format.JAR)
 
                 def modifiedJar = null
-                if (!project.sensorsAnalytics.disableJar) {
+                //if (!project.sensorsAnalytics.disableJar) {
                     modifiedJar = modifyJarFile(jarInput.file, context.getTemporaryDir())
-                }
+                //}
                 if (modifiedJar == null) {
                     modifiedJar = jarInput.file
                 }
@@ -160,15 +168,26 @@ class SensorsAnalyticsTransform extends Transform {
         return true
     }
 
-    private static boolean isShouldModify(String className) {
-        Iterator<String> iterator = exclude.iterator()
-        while (iterator.hasNext()) {
-            String packageName = iterator.next()
-            if (className.startsWith(packageName)) {
-                return false
+    private static boolean isShouldModifyClass(String className) {
+        if (!disableJar) {
+            Iterator<String> iterator = exclude.iterator()
+            while (iterator.hasNext()) {
+                String packageName = iterator.next()
+                if (className.startsWith(packageName)) {
+                    return false
+                }
             }
+            return true
+        } else {
+            Iterator<String> iterator = include.iterator()
+            while (iterator.hasNext()) {
+                String packageName = iterator.next()
+                if (className.startsWith(packageName)) {
+                    return true
+                }
+            }
+            return false
         }
-        return true
     }
 
     /**
@@ -176,9 +195,9 @@ class SensorsAnalyticsTransform extends Transform {
      */
     private static File modifyJarFile(File jarFile, File tempDir) {
         if (jarFile) {
-            if (isShouldModifyJar(jarFile.getName())) {
+            //if (isShouldModifyJar(jarFile.getName())) {
                 return modifyJar(jarFile, tempDir, true)
-            }
+            //}
 
         }
         return null
@@ -216,7 +235,7 @@ class SensorsAnalyticsTransform extends Transform {
             byte[] sourceClassBytes = IOUtils.toByteArray(inputStream)
             if (entryName.endsWith(".class")) {
                 className = entryName.replace("/", ".").replace(".class", "")
-                if (isShouldModify(className)) {
+                if (isShouldModifyClass(className)) {
                     modifiedClassBytes = modifyClasses(className, sourceClassBytes)
                 }
             }
@@ -256,7 +275,6 @@ class SensorsAnalyticsTransform extends Transform {
         return classWriter.toByteArray()
     }
 
-
     /**
      * 目录文件中修改对应字节码
      */
@@ -265,7 +283,7 @@ class SensorsAnalyticsTransform extends Transform {
         FileOutputStream outputStream = null
         try {
             String className = path2ClassName(classFile.absolutePath.replace(dir.absolutePath + File.separator, ""))
-            if (isShouldModify(className)) {
+            if (isShouldModifyClass(className)) {
                 byte[] sourceClassBytes = IOUtils.toByteArray(new FileInputStream(classFile))
                 byte[] modifiedClassBytes = modifyClasses(className, sourceClassBytes)
                 if (modifiedClassBytes) {
