@@ -15,7 +15,7 @@ public class SensorsAnalyticsHookConfig {
                 '(Landroid/view/View;)V',
                 'android/view/View$OnClickListener',
                 'trackViewOnClick',
-                '(Landroid/view/View;)V',
+                '(Ljava/lang/Object;)V',
                 1, 1,
                 [Opcodes.ALOAD]))
         sInterfaceMethods.put('onCheckedChanged(Landroid/widget/CompoundButton;Z)V', new SensorsAnalyticsMethodCell(

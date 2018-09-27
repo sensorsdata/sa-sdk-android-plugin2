@@ -1,5 +1,5 @@
 project.ext {
-    pluginVersion = '2.0.6'
+    pluginVersion = '2.0.7'
     Properties properties = new Properties()
     if (project.file('local.properties').exists()) {
         properties.load(project.file('local.properties').newDataInputStream())
