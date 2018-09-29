@@ -15,7 +15,7 @@ public class SensorsAnalyticsHookConfig {
                 '(Landroid/view/View;)V',
                 'android/view/View$OnClickListener',
                 'trackViewOnClick',
-                '(Ljava/lang/Object;)V',
+                '(Landroid/view/View;)V',
                 1, 1,
                 [Opcodes.ALOAD]))
         sInterfaceMethods.put('onCheckedChanged(Landroid/widget/CompoundButton;Z)V', new SensorsAnalyticsMethodCell(
@@ -23,7 +23,7 @@ public class SensorsAnalyticsHookConfig {
                 '(Landroid/widget/CompoundButton;Z)V',
                 'android/widget/CompoundButton$OnCheckedChangeListener',
                 'trackViewOnClick',
-                '(Ljava/lang/Object;)V',
+                '(Landroid/view/View;)V',
                 1, 1,
                 [Opcodes.ALOAD]))
         sInterfaceMethods.put('onRatingChanged(Landroid/widget/RatingBar;FZ)V', new SensorsAnalyticsMethodCell(
@@ -31,7 +31,7 @@ public class SensorsAnalyticsHookConfig {
                 '(Landroid/widget/RatingBar;FZ)V',
                 'android/widget/RatingBar$OnRatingBarChangeListener',
                 'trackViewOnClick',
-                '(Ljava/lang/Object;)V',
+                '(Landroid/view/View;)V',
                 1, 1,
                 [Opcodes.ALOAD]))
         sInterfaceMethods.put('onStopTrackingTouch(Landroid/widget/SeekBar;)V', new SensorsAnalyticsMethodCell(
@@ -39,7 +39,7 @@ public class SensorsAnalyticsHookConfig {
                 '(Landroid/widget/SeekBar;)V',
                 'android/widget/SeekBar$OnSeekBarChangeListener',
                 'trackViewOnClick',
-                '(Ljava/lang/Object;)V',
+                '(Landroid/view/View;)V',
                 1, 1,
                 [Opcodes.ALOAD]))
         sInterfaceMethods.put('onCheckedChanged(Landroid/widget/RadioGroup;I)V', new SensorsAnalyticsMethodCell(

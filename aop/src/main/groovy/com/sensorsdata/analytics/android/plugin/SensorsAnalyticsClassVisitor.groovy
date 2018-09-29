@@ -119,8 +119,8 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
             }
 
             @Override
-            protected void onMethodExit(int opcode) {
-                super.onMethodExit(opcode)
+            protected void onMethodEnter() {
+                super.onMethodEnter()
 
                 if (isSensorsDataIgnoreTrackOnClick) {
                     return
@@ -204,7 +204,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                 if (mClassName == 'android/databinding/generated/callback/OnClickListener') {
                     if (nameDesc == 'onClick(Landroid/view/View;)V') {
                         methodVisitor.visitVarInsn(ALOAD, 1)
-                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackViewOnClick", "(Ljava/lang/Object;)V", false)
+                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackViewOnClick", "(Landroid/view/View;)V", false)
                         isHasTracked = true
                         return
                     }
@@ -226,7 +226,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                 if (isSensorsDataTrackViewOnClickAnnotation) {
                     if (desc == '(Landroid/view/View;)V') {
                         methodVisitor.visitVarInsn(ALOAD, 1)
-                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackViewOnClick", "(Ljava/lang/Object;)V", false)
+                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackViewOnClick", "(Landroid/view/View;)V", false)
                         isHasTracked = true
                         return
                     }
@@ -243,7 +243,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                 if (!isHasTracked) {
                     if (nameDesc == 'onClick(Landroid/view/View;)V') {
                         methodVisitor.visitVarInsn(ALOAD, 1)
-                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackViewOnClick", "(Ljava/lang/Object;)V", false)
+                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackViewOnClick", "(Landroid/view/View;)V", false)
                         isHasTracked = true
                     }
                 }
