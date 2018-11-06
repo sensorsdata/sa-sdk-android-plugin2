@@ -33,6 +33,10 @@ class SensorsAnalyticsUtil implements Opcodes {
         return (access & ACC_STATIC) != 0
     }
 
+    static boolean isSynthetic(int access) {
+        return (access & ACC_SYNTHETIC) != 0
+    }
+
     static boolean isTargetMenuMethodDesc(String nameDesc) {
         return targetMenuMethodDesc.contains(nameDesc)
     }
