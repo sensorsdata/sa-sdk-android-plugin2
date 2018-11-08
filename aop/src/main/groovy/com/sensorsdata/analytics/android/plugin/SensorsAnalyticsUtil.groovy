@@ -19,6 +19,7 @@ class SensorsAnalyticsUtil implements Opcodes {
          */
         targetFragmentClass.add('android/support/v4/app/Fragment')
         targetFragmentClass.add('android/support/v4/app/ListFragment')
+        targetFragmentClass.add('android/support/v4/app/DialogFragment')
     }
 
     static boolean isPrivate(int access) {
