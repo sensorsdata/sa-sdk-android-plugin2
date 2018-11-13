@@ -27,8 +27,11 @@ import java.util.zip.ZipEntry
 class SensorsAnalyticsTransform extends Transform {
     private static Project project
     private static HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support']
-    private static HashSet<String> include = []
+    private static HashSet<String> include = ['butterknife.internal.DebouncingOnClickListener',
+                                              'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
+                                              'com.facebook.react.uimanager.NativeViewHierarchyManager']
     protected static boolean disableJar
+    private static final String VERSION = "v2.2.0"
 
     SensorsAnalyticsTransform(Project project) {
         this.project = project
@@ -62,7 +65,7 @@ class SensorsAnalyticsTransform extends Transform {
         println("####################################################################")
         println("########                                                    ########")
         println("########                                                    ########")
-        println("########         欢迎使用 SensorsAnalytics® 编译插件        ########")
+        println("########     欢迎使用 SensorsAnalytics® (" + VERSION + ")编译插件    ########")
         println("########          使用过程中碰到任何问题请联系我们          ########")
         println("########                                                    ########")
         println("########                                                    ########")
@@ -101,8 +104,6 @@ class SensorsAnalyticsTransform extends Transform {
              */
             input.jarInputs.each { JarInput jarInput ->
                 String destName = jarInput.file.name
-                Logger.info("开始遍历 jar：" + jarInput.file.absolutePath)
-
                 /**
                  * 截取文件路径的md5值重命名输出文件,因为可能同名,会覆盖
                  */
@@ -114,15 +115,17 @@ class SensorsAnalyticsTransform extends Transform {
                 File dest = outputProvider.getContentLocation(destName + "_" + hexName, jarInput.contentTypes, jarInput.scopes, Format.JAR)
 
                 def modifiedJar = null
-                //if (!project.sensorsAnalytics.disableJar) {
-                    modifiedJar = modifyJarFile(jarInput.file, context.getTemporaryDir())
-                //}
+                if (!project.sensorsAnalytics.disableJar) {
+                    if (isShouldModifyJar(jarInput.file.absolutePath)) {
+                        Logger.info("开始遍历 jar：" + jarInput.file.absolutePath)
+                        modifiedJar = modifyJarFile(jarInput.file, context.getTemporaryDir())
+                        Logger.info("结束遍历 jar：" + jarInput.file.absolutePath)
+                    }
+                }
                 if (modifiedJar == null) {
                     modifiedJar = jarInput.file
                 }
                 FileUtils.copyFile(modifiedJar, dest)
-
-                Logger.info("结束遍历 jar：" + jarInput.file.absolutePath)
             }
 
             /**
@@ -157,19 +160,51 @@ class SensorsAnalyticsTransform extends Transform {
         }
     }
 
-    private static boolean isShouldModifyJar(String jarName) {
-        Iterator<String> iterator = exclude.iterator()
-        while (iterator.hasNext()) {
-            String packageName = iterator.next()
-            if (packageName == jarName) {
-                return false
-            }
-        }
+    private static boolean isShouldModifyJar(String jarFileName) {
         return true
+        /*
+        if (project.sensorsAnalytics.useInclude) {
+            Iterator<String> iterator = include.iterator()
+            while (iterator.hasNext()) {
+                String jarName = iterator.next()
+                if (jarFileName.contains(jarName)) {
+                    return true
+                }
+            }
+            return false
+        } else {
+            Iterator<String> iterator = exclude.iterator()
+            while (iterator.hasNext()) {
+                String jarName = iterator.next()
+                if (jarFileName.contains(jarName)) {
+                    return false
+                }
+            }
+            return true
+        }
+        */
     }
 
     private static boolean isShouldModifyClass(String className) {
-        if (!disableJar) {
+        if (className.contains('R$') ||
+                className.contains('R2$') ||
+                className.contains('R.class') ||
+                className.contains('R2.class') ||
+                className.contains('BuildConfig.class')) {
+            return false
+        }
+
+        if (project.sensorsAnalytics.useInclude) {
+            Iterator<String> iterator = include.iterator()
+            while (iterator.hasNext()) {
+                String packageName = iterator.next()
+
+                if (className.startsWith(packageName)) {
+                    return true
+                }
+            }
+            return false
+        } else {
             Iterator<String> iterator = exclude.iterator()
             while (iterator.hasNext()) {
                 String packageName = iterator.next()
@@ -178,15 +213,6 @@ class SensorsAnalyticsTransform extends Transform {
                 }
             }
             return true
-        } else {
-            Iterator<String> iterator = include.iterator()
-            while (iterator.hasNext()) {
-                String packageName = iterator.next()
-                if (className.startsWith(packageName)) {
-                    return true
-                }
-            }
-            return false
         }
     }
 
@@ -195,9 +221,7 @@ class SensorsAnalyticsTransform extends Transform {
      */
     private static File modifyJarFile(File jarFile, File tempDir) {
         if (jarFile) {
-            //if (isShouldModifyJar(jarFile.getName())) {
-                return modifyJar(jarFile, tempDir, true)
-            //}
+            return modifyJar(jarFile, tempDir, true)
 
         }
         return null
@@ -225,26 +249,35 @@ class SensorsAnalyticsTransform extends Transform {
             InputStream inputStream = file.getInputStream(jarEntry)
 
             String entryName = jarEntry.getName()
-            String className
-
-            ZipEntry zipEntry = new ZipEntry(entryName)
-
-            jarOutputStream.putNextEntry(zipEntry)
-
-            byte[] modifiedClassBytes = null
-            byte[] sourceClassBytes = IOUtils.toByteArray(inputStream)
-            if (entryName.endsWith(".class")) {
-                className = entryName.replace("/", ".").replace(".class", "")
-                if (isShouldModifyClass(className)) {
-                    modifiedClassBytes = modifyClasses(className, sourceClassBytes)
-                }
-            }
-            if (modifiedClassBytes == null) {
-                jarOutputStream.write(sourceClassBytes)
+            if (entryName.endsWith(".DSA") || entryName.endsWith(".SF")) {
+                //ignore
             } else {
-                jarOutputStream.write(modifiedClassBytes)
+                String className
+
+                ZipEntry zipEntry = new ZipEntry(entryName)
+
+                jarOutputStream.putNextEntry(zipEntry)
+
+                byte[] modifiedClassBytes = null
+                byte[] sourceClassBytes = null
+                try {
+                    sourceClassBytes = IOUtils.toByteArray(inputStream)
+                } catch (Exception e) {
+                    return null
+                }
+                if (entryName.endsWith(".class")) {
+                    className = entryName.replace("/", ".").replace(".class", "")
+                    if (isShouldModifyClass(className)) {
+                        modifiedClassBytes = modifyClasses(className, sourceClassBytes)
+                    }
+                }
+                if (modifiedClassBytes == null) {
+                    jarOutputStream.write(sourceClassBytes)
+                } else {
+                    jarOutputStream.write(modifiedClassBytes)
+                }
+                jarOutputStream.closeEntry()
             }
-            jarOutputStream.closeEntry()
         }
         jarOutputStream.close()
         file.close()

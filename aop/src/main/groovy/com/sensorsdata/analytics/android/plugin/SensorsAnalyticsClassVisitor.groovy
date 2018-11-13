@@ -126,6 +126,24 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                     return
                 }
 
+                /**
+                 * 在 android.gradle 的 3.2.1 版本中，针对 view 的 setOnClickListener 方法 的 lambda 表达式做特殊处理。
+                 */
+                if (name.trim().startsWith('lambda$') && SensorsAnalyticsUtil.isPrivate(access) && SensorsAnalyticsUtil.isSynthetic(access)) {
+                    SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sLambdaMethods.get(desc)
+                    if (sensorsAnalyticsMethodCell != null) {
+                        int paramStart = sensorsAnalyticsMethodCell.paramsStart
+                        if (SensorsAnalyticsUtil.isStatic(access)) {
+                            paramStart = paramStart - 1
+                        }
+                        visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI,
+                                sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc,
+                                paramStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                        isHasTracked = true
+                        return
+                    }
+                }
+
                 if (!(SensorsAnalyticsUtil.isPublic(access) && !SensorsAnalyticsUtil.isStatic(access))) {
                     return
                 }

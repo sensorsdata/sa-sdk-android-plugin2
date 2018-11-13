@@ -22,6 +22,10 @@ class SensorsAnalyticsUtil implements Opcodes {
         targetFragmentClass.add('android/support/v4/app/DialogFragment')
     }
 
+    static boolean isSynthetic(int access) {
+        return (access & ACC_SYNTHETIC) != 0
+    }
+
     static boolean isPrivate(int access) {
         return (access & ACC_PRIVATE) != 0
     }
