@@ -26,12 +26,12 @@ import java.util.zip.ZipEntry
 
 class SensorsAnalyticsTransform extends Transform {
     private static Project project
-    private static HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support']
+    private static HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx']
     private static HashSet<String> include = ['butterknife.internal.DebouncingOnClickListener',
                                               'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
                                               'com.facebook.react.uimanager.NativeViewHierarchyManager']
     protected static boolean disableJar
-    private static final String VERSION = "v2.2.0"
+    private static final String VERSION = "v2.2.1"
 
     SensorsAnalyticsTransform(Project project) {
         this.project = project
@@ -285,17 +285,11 @@ class SensorsAnalyticsTransform extends Transform {
     }
 
     static byte[] modifyClasses(String className, byte[] srcByteCode) {
-        byte[] classBytesCode = null
         try {
-            classBytesCode = modifyClass(srcByteCode)
-            return classBytesCode
+            return modifyClass(srcByteCode)
         } catch (Exception e) {
-            e.printStackTrace()
+            return srcByteCode
         }
-        if (classBytesCode == null) {
-            classBytesCode = srcByteCode
-        }
-        return classBytesCode
     }
     /**
      * 真正修改类中方法字节码

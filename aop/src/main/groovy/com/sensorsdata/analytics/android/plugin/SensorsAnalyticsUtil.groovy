@@ -20,6 +20,13 @@ class SensorsAnalyticsUtil implements Opcodes {
         targetFragmentClass.add('android/support/v4/app/Fragment')
         targetFragmentClass.add('android/support/v4/app/ListFragment')
         targetFragmentClass.add('android/support/v4/app/DialogFragment')
+
+        /**
+         * For AndroidX Fragment
+         */
+        targetFragmentClass.add('androidx/fragment/app/Fragment')
+        targetFragmentClass.add('androidx/fragment/app/ListFragment')
+        targetFragmentClass.add('androidx/fragment/app/DialogFragment')
     }
 
     static boolean isSynthetic(int access) {

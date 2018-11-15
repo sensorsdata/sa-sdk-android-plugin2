@@ -18,7 +18,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
     }
 
     SensorsAnalyticsClassVisitor(final ClassVisitor classVisitor) {
-        super(Opcodes.ASM5, classVisitor)
+        super(Opcodes.ASM7, classVisitor)
         this.classVisitor = classVisitor
     }
 
@@ -228,7 +228,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                     }
                 }
 
-                if (mClassName.startsWith('android')) {
+                if (mClassName.startsWith('android') || mClassName.startsWith('androidx')) {
                     return
                 }
 
