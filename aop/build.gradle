@@ -30,8 +30,8 @@ dependencies {
 
     implementation gradleApi()
     implementation localGroovy()
-    compile 'org.ow2.asm:asm:7.0'
-    compile 'org.ow2.asm:asm-commons:7.0'
+    compile 'org.ow2.asm:asm:6.0'
+    compile 'org.ow2.asm:asm-commons:6.0'
     compileOnly 'com.android.tools.build:gradle:3.0.0'
 }
 

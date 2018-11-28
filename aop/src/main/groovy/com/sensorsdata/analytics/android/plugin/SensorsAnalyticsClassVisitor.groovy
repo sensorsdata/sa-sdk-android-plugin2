@@ -18,7 +18,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
     }
 
     SensorsAnalyticsClassVisitor(final ClassVisitor classVisitor) {
-        super(Opcodes.ASM7, classVisitor)
+        super(Opcodes.ASM6, classVisitor)
         this.classVisitor = classVisitor
     }
 
