@@ -10,11 +10,22 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.extensions.create("sensorsAnalytics", SensorsAnalyticsExtension)
 
-        AppExtension appExtension = project.extensions.findByType(AppExtension.class)
-        appExtension.registerTransform(new SensorsAnalyticsTransform(project))
+        boolean disableSensorsAnalyticsPlugin = false
+        Properties properties = new Properties()
+        if (project.rootProject.file('gradle.properties').exists()) {
+            properties.load(project.rootProject.file('gradle.properties').newDataInputStream())
+            disableSensorsAnalyticsPlugin = Boolean.parseBoolean(properties.getProperty("disableSensorsAnalyticsPlugin", "false"))
+        }
 
-        project.afterEvaluate {
-            Logger.setDebug(project.sensorsAnalytics.debug)
+        if (!disableSensorsAnalyticsPlugin) {
+            AppExtension appExtension = project.extensions.findByType(AppExtension.class)
+            appExtension.registerTransform(new SensorsAnalyticsTransform(project))
+
+            project.afterEvaluate {
+                Logger.setDebug(project.sensorsAnalytics.debug)
+            }
+        } else {
+            println "[SensorsAnalytics]: ------------您已关闭了神策插件--------------"
         }
     }
 }

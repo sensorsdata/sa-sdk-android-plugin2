@@ -31,7 +31,7 @@ class SensorsAnalyticsTransform extends Transform {
                                               'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
                                               'com.facebook.react.uimanager.NativeViewHierarchyManager']
     protected static boolean disableJar
-    private static final String VERSION = "v2.2.3"
+    private static final String VERSION = "v2.2.4"
 
     SensorsAnalyticsTransform(Project project) {
         this.project = project
