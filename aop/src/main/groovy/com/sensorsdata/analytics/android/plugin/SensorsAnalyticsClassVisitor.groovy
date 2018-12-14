@@ -2,6 +2,7 @@ package com.sensorsdata.analytics.android.plugin
 
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -12,14 +13,22 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
     private HashSet<String> visitedFragMethods = new HashSet<>()// 无需判空
     private ClassVisitor classVisitor
 
+    private SensorsAnalyticsTransformHelper transformHelper
+
+    private ClassNameAnalytics classNameAnalytics
+
+    private ArrayList<SensorsAnalyticsMethodCell> methodCells = new ArrayList<>()
+
     @Override
     protected Object clone() throws CloneNotSupportedException {
         return super.clone()
     }
 
-    SensorsAnalyticsClassVisitor(final ClassVisitor classVisitor) {
+    SensorsAnalyticsClassVisitor(final ClassVisitor classVisitor,ClassNameAnalytics classNameAnalytics,SensorsAnalyticsTransformHelper transformHelper) {
         super(Opcodes.ASM6, classVisitor)
         this.classVisitor = classVisitor
+        this.classNameAnalytics = classNameAnalytics
+        this.transformHelper = transformHelper
     }
 
     private
@@ -85,10 +94,38 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
             }
         }
 
+        for (cell in methodCells) {
+            transformHelper.sensorsAnalyticsHookConfig."${cell.agentName}"(classVisitor,cell)
+        }
+
         Logger.info("结束扫描类：${mClassName}\n")
     }
 
-    /**
+
+    @Override
+    FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+        if (classNameAnalytics.isSensorsDataAPI) {
+            if ('VERSION' == name) {
+                String version = (String)value
+                if (SensorsAnalyticsTransform.MIN_SDK_VERSION > version) {
+                    String errMessage = "你目前集成的神策埋点 SDK 版本号为 v${version}，请升级到 v${SensorsAnalyticsTransform.MIN_SDK_VERSION} 及以上的版本。详情请参考：https://github.com/sensorsdata/sa-sdk-android"
+                    Logger.error(errMessage)
+                    throw new UnsupportedOperationException(errMessage)
+                }
+            } else if ('MIN_PLUGIN_VERSION' == name) {
+                String minPluginVersion = (String)value
+                if (minPluginVersion != "" && minPluginVersion != null) {
+                    if (SensorsAnalyticsTransform.VERSION < minPluginVersion) {
+                        String errMessage = "你目前集成的神策插件版本号为 v${SensorsAnalyticsTransform.VERSION}，请升级到 v${minPluginVersion} 及以上的版本。详情请参考：https://github.com/sensorsdata/sa-sdk-android-plugin2"
+                        Logger.error(errMessage)
+                        throw new UnsupportedOperationException(errMessage)
+                    }
+                }
+            }
+        }
+        return super.visitField(access, name, descriptor, signature, value)
+    }
+/**
      *  该方法是当扫描器扫描到类的方法时进行调用
      * @param access 表示方法的修饰符
      * @param name 表示方法名，在 ASM 中 “visitMethod” 方法会处理（构造方法、静态代码块、私有方法、受保护的方法、共有方法、native类型方法）。
@@ -100,11 +137,20 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
      */
     @Override
     MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        for (methodCell in classNameAnalytics.methodCells) {
+            if (methodCell.name == name && methodCell.desc == desc) {
+                methodCells.add(methodCell)
+                return null
+            }
+        }
+
         MethodVisitor methodVisitor = cv.visitMethod(access, name, desc, signature, exceptions)
 
         methodVisitor = new SensorsAnalyticsDefaultMethodVisitor(methodVisitor, access, name, desc) {
             boolean isSensorsDataTrackViewOnClickAnnotation = false
             boolean isSensorsDataIgnoreTrackOnClick = false
+            String eventName = null
+            String eventProperties = null
             boolean isHasInstrumented = false
             boolean isHasTracked = false
 
@@ -119,8 +165,12 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
             }
 
             @Override
-            protected void onMethodEnter() {
-                super.onMethodEnter()
+            protected void onMethodExit(int opcode) {
+                if (classNameAnalytics.isSensorsDataAPI) {
+                    return
+                }
+
+                super.onMethodExit(opcode)
 
                 if (isSensorsDataIgnoreTrackOnClick) {
                     return
@@ -129,16 +179,46 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                 /**
                  * 在 android.gradle 的 3.2.1 版本中，针对 view 的 setOnClickListener 方法 的 lambda 表达式做特殊处理。
                  */
-                if (name.trim().startsWith('lambda$') && SensorsAnalyticsUtil.isPrivate(access) && SensorsAnalyticsUtil.isSynthetic(access)) {
-                    SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sLambdaMethods.get(desc)
-                    if (sensorsAnalyticsMethodCell != null) {
-                        int paramStart = sensorsAnalyticsMethodCell.paramsStart
-                        if (SensorsAnalyticsUtil.isStatic(access)) {
-                            paramStart = paramStart - 1
+                if (transformHelper.lambdaEnabled) {
+                    if (name.trim().startsWith('lambda$') && SensorsAnalyticsUtil.isPrivate(access) && SensorsAnalyticsUtil.isSynthetic(access)) {
+                        if (desc == '(Landroid/view/MenuItem;)Z' && SensorsAnalyticsUtil.isStatic(access)) {
+                            SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sLambdaMethods.get(desc + '2')
+                            if (sensorsAnalyticsMethodCell != null) {
+                                visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI,
+                                        sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc,
+                                        sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                                isHasTracked = true
+                                return
+                            }
+                        } else {
+                            SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sLambdaMethods.get(desc)
+                            if (sensorsAnalyticsMethodCell != null) {
+                                int paramStart = sensorsAnalyticsMethodCell.paramsStart
+                                if (SensorsAnalyticsUtil.isStatic(access)) {
+                                    paramStart = paramStart - 1
+                                }
+                                visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI,
+                                        sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc,
+                                        paramStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                                isHasTracked = true
+                                return
+                            }
                         }
-                        visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI,
-                                sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc,
-                                paramStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                    }
+                }
+
+                /**
+                 * Method 描述信息
+                 */
+                String nameDesc = name + desc
+
+                /**
+                 * 处理 ViewPager
+                 */
+                if (mClassName == 'android/support/v4/view/ViewPager' || mClassName == 'androidx/viewpager/widget/ViewPager') {
+                    if (nameDesc == 'dispatchOnPageSelected(I)V') {
+                        methodVisitor.visitVarInsn(ALOAD, 0)
+                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackViewOnClick", "(Landroid/view/View;)V", false)
                         isHasTracked = true
                         return
                     }
@@ -154,11 +234,6 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                 if (isHasInstrumented) {
                     return
                 }
-
-                /**
-                 * Method 描述信息
-                 */
-                String nameDesc = name + desc
 
                 /**
                  * React Native
@@ -200,9 +275,14 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                  * 目前支持 onContextItemSelected(MenuItem item)、onOptionsItemSelected(MenuItem item)
                  */
                 if (SensorsAnalyticsUtil.isTargetMenuMethodDesc(nameDesc)) {
-                    methodVisitor.visitVarInsn(ALOAD, 0)
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackMenuItem", "(Ljava/lang/Object;Landroid/view/MenuItem;)V", false)
+                    if (SensorsAnalyticsUtil.isStatic(access)) {
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackMenuItem", "(Landroid/view/MenuItem;)V", false)
+                    } else {
+                        methodVisitor.visitVarInsn(ALOAD, 0)
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackMenuItem", "(Ljava/lang/Object;Landroid/view/MenuItem;)V", false)
+                    }
                     isHasTracked = true
                     return
                 }
@@ -250,6 +330,14 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                     }
                 }
 
+                if (eventName != null && eventName.length() != 0) {
+                    methodVisitor.visitLdcInsn(eventName)
+                    methodVisitor.visitLdcInsn(eventProperties)
+                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "track", "(Ljava/lang/String;Ljava/lang/String;)V", false)
+                    isHasTracked = true
+                    return
+                }
+
                 if (mInterfaces != null && mInterfaces.length > 0) {
                     SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sInterfaceMethods.get(nameDesc)
                     if (sensorsAnalyticsMethodCell != null && mInterfaces.contains(sensorsAnalyticsMethodCell.parent)) {
@@ -292,10 +380,25 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                     isHasInstrumented = true
                 }
 
+                if (s == 'Lcom/sensorsdata/analytics/android/sdk/SensorsDataTrackEvent;') {
+                    return new AnnotationVisitor(Opcodes.ASM6) {
+                        @Override
+                        void visit(String key, Object value) {
+                            super.visit(key, value)
+                            if ("eventName" == key) {
+                                eventName = (String)value
+                            } else if ("properties" == key) {
+                                eventProperties = value.toString()
+                            }
+                        }
+                    }
+                }
+
                 return super.visitAnnotation(s, b)
             }
         }
 
         return methodVisitor
     }
+
 }

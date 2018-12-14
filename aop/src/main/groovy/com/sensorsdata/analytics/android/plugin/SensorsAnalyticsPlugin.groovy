@@ -5,10 +5,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 class SensorsAnalyticsPlugin implements Plugin<Project> {
-
     @Override
     void apply(Project project) {
-        project.extensions.create("sensorsAnalytics", SensorsAnalyticsExtension)
+        Object extension = project.extensions.create("sensorsAnalytics", SensorsAnalyticsExtension,project.objects)
 
         boolean disableSensorsAnalyticsPlugin = false
         Properties properties = new Properties()
@@ -16,16 +15,17 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
             properties.load(project.rootProject.file('gradle.properties').newDataInputStream())
             disableSensorsAnalyticsPlugin = Boolean.parseBoolean(properties.getProperty("disableSensorsAnalyticsPlugin", "false"))
         }
-
         if (!disableSensorsAnalyticsPlugin) {
             AppExtension appExtension = project.extensions.findByType(AppExtension.class)
-            appExtension.registerTransform(new SensorsAnalyticsTransform(project))
+            SensorsAnalyticsTransformHelper transformHelper = new SensorsAnalyticsTransformHelper(extension)
+            appExtension.registerTransform(new SensorsAnalyticsTransform(transformHelper))
 
             project.afterEvaluate {
-                Logger.setDebug(project.sensorsAnalytics.debug)
+                Logger.setDebug(extension.debug)
             }
         } else {
-            println "[SensorsAnalytics]: ------------您已关闭了神策插件--------------"
+            Logger.error("------------您已关闭了神策插件--------------")
         }
+
     }
 }

@@ -2,7 +2,7 @@ package com.sensorsdata.analytics.android.plugin
 
 import jdk.internal.org.objectweb.asm.Opcodes
 
-public class SensorsAnalyticsHookConfig {
+class SensorsAnalyticsHookConfig {
     public static
     final String sSensorsAnalyticsAPI = "com/sensorsdata/analytics/android/sdk/SensorsDataAutoTrackHelper"
 
@@ -99,19 +99,19 @@ public class SensorsAnalyticsHookConfig {
                 1, 1,
                 [Opcodes.ALOAD]))
 
-        sInterfaceMethods.put('onNavigationItemSelected(Landroid/view/MenuItem;)Z', new SensorsAnalyticsMethodCell(
-                'onNavigationItemSelected',
-                '(Landroid/view/MenuItem;)Z',
-                'android/support/design/widget/NavigationView$OnNavigationItemSelectedListener',
-                'trackMenuItem',
-                '(Ljava/lang/Object;Landroid/view/MenuItem;)V',
-                0, 2,
-                [Opcodes.ALOAD, Opcodes.ALOAD]))
-
         sInterfaceMethods.put('onTabSelected(Landroid/support/design/widget/TabLayout$Tab;)V', new SensorsAnalyticsMethodCell(
                 'onTabSelected',
                 '(Landroid/support/design/widget/TabLayout$Tab;)V',
                 'android/support/design/widget/TabLayout$OnTabSelectedListener',
+                'trackTabLayoutSelected',
+                '(Ljava/lang/Object;Ljava/lang/Object;)V',
+                0, 2,
+                [Opcodes.ALOAD, Opcodes.ALOAD]))
+
+        sInterfaceMethods.put('onTabSelected(Lcom/google/android/material/tabs/TabLayout$Tab;)V', new SensorsAnalyticsMethodCell(
+                'onTabSelected',
+                '(Lcom/google/android/material/tabs/TabLayout$Tab;)V',
+                'com/google/android/material/tabs/TabLayout$OnTabSelectedListener',
                 'trackTabLayoutSelected',
                 '(Ljava/lang/Object;Ljava/lang/Object;)V',
                 0, 2,
@@ -266,14 +266,15 @@ public class SensorsAnalyticsHookConfig {
                 0, 2,
                 [Opcodes.ALOAD, Opcodes.ALOAD]))
 
-        sLambdaMethods.put('(Landroid/support/design/widget/TabLayout$Tab;)V', new SensorsAnalyticsMethodCell(
-                'onTabSelected',
-                '(Landroid/support/design/widget/TabLayout$Tab;)V',
-                'android/support/design/widget/TabLayout$OnTabSelectedListener',
-                'trackTabLayoutSelected',
-                '(Ljava/lang/Object;Ljava/lang/Object;)V',
-                0, 2,
-                [Opcodes.ALOAD, Opcodes.ALOAD]))
+        //static
+        sLambdaMethods.put('(Landroid/view/MenuItem;)Z2', new SensorsAnalyticsMethodCell(
+                'onNavigationItemSelected',
+                '(Landroid/view/MenuItem;)Z',
+                'android/support/design/widget/NavigationView$OnNavigationItemSelectedListener',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                0, 1,
+                [Opcodes.ALOAD]))
 
         // Todo: 扩展
     }

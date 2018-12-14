@@ -2,7 +2,7 @@ package com.sensorsdata.analytics.android.plugin
 
 import java.lang.reflect.Array
 
-public class Logger {
+class Logger {
     private static boolean debug = false
     public static HashMap<Integer, String> accCodeMap = new HashMap<>()
     public static HashMap<Integer, String> opCodeMap = new HashMap<>()
@@ -16,6 +16,14 @@ public class Logger {
 
     static boolean isDebug() {
         return debug
+    }
+
+    def static error(Object msg) {
+        try {
+            println("\033[40;31m" + "[SensorsAnalytics]: ${msg}" + "\033[0m")
+        } catch (Exception e) {
+            e.printStackTrace()
+        }
     }
 
     /**

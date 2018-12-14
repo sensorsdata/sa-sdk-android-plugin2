@@ -1,6 +1,6 @@
 package com.sensorsdata.analytics.android.plugin
 
-public class SensorsAnalyticsMethodCell {
+class SensorsAnalyticsMethodCell {
     // 原方法名
     String name
     // 原方法描述
@@ -17,6 +17,12 @@ public class SensorsAnalyticsMethodCell {
     int paramsCount
     // 参数类型对应的ASM指令，加载不同类型的参数需要不同的指令
     List<Integer> opcodes
+
+    SensorsAnalyticsMethodCell(String name, String desc, String agentName) {
+        this.name = name
+        this.desc = desc
+        this.agentName = agentName
+    }
 
     SensorsAnalyticsMethodCell(String name, String desc, String parent, String agentName, String agentDesc, int paramsStart, int paramsCount, List<Integer> opcodes) {
         this.name = name

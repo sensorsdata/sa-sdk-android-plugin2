@@ -14,7 +14,6 @@ import groovy.io.FileType
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
-import org.gradle.api.Project
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
@@ -25,16 +24,12 @@ import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
 class SensorsAnalyticsTransform extends Transform {
-    private static Project project
-    private static HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx']
-    private static HashSet<String> include = ['butterknife.internal.DebouncingOnClickListener',
-                                              'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
-                                              'com.facebook.react.uimanager.NativeViewHierarchyManager']
-    protected static boolean disableJar
-    private static final String VERSION = "v2.2.4"
+    private SensorsAnalyticsTransformHelper transformHelper
+    public static final String VERSION = "3.0.0"
+    public static final String MIN_SDK_VERSION = "3.0.0"
 
-    SensorsAnalyticsTransform(Project project) {
-        this.project = project
+    SensorsAnalyticsTransform(SensorsAnalyticsTransformHelper transformHelper) {
+        this.transformHelper = transformHelper
     }
 
     @Override
@@ -60,16 +55,16 @@ class SensorsAnalyticsTransform extends Transform {
     /**
      * 打印提示信息
      */
-    static void printCopyRight() {
+    private void printCopyRight() {
         println()
-        println("####################################################################")
-        println("########                                                    ########")
-        println("########                                                    ########")
-        println("########     欢迎使用 SensorsAnalytics® (" + VERSION + ")编译插件    ########")
-        println("########          使用过程中碰到任何问题请联系我们          ########")
-        println("########                                                    ########")
-        println("########                                                    ########")
-        println("####################################################################")
+        println("\033[40;32m" + "####################################################################" + "\033[0m")
+        println("\033[40;32m" + "########                                                    ########" + "\033[0m")
+        println("\033[40;32m" + "########                                                    ########" + "\033[0m")
+        println("\033[40;32m" + "########     欢迎使用 SensorsAnalytics® (v" + VERSION + ")编译插件    ########" + "\033[0m")
+        println("\033[40;32m" + "########          使用过程中碰到任何问题请联系我们          ########" + "\033[0m")
+        println("\033[40;32m" + "########                                                    ########" + "\033[0m")
+        println("\033[40;32m" + "########                                                    ########" + "\033[0m")
+        println("\033[40;32m" + "####################################################################" + "\033[0m")
         println()
     }
 
@@ -84,16 +79,7 @@ class SensorsAnalyticsTransform extends Transform {
             outputProvider.deleteAll()
         }
 
-        disableJar = project.sensorsAnalytics.disableJar
-        HashSet<String> excludePackages = project.sensorsAnalytics.exclude
-        if (excludePackages != null) {
-            exclude.addAll(excludePackages)
-        }
-
-        HashSet<String> includePackages = project.sensorsAnalytics.include
-        if (includePackages != null) {
-            include.addAll(includePackages)
-        }
+        transformHelper.onTransform()
 
         /**
          * 遍历输入文件
@@ -115,12 +101,10 @@ class SensorsAnalyticsTransform extends Transform {
                 File dest = outputProvider.getContentLocation(destName + "_" + hexName, jarInput.contentTypes, jarInput.scopes, Format.JAR)
 
                 def modifiedJar = null
-                if (!project.sensorsAnalytics.disableJar) {
-                    if (isShouldModifyJar(jarInput.file.absolutePath)) {
-                        Logger.info("开始遍历 jar：" + jarInput.file.absolutePath)
-                        modifiedJar = modifyJarFile(jarInput.file, context.getTemporaryDir())
-                        Logger.info("结束遍历 jar：" + jarInput.file.absolutePath)
-                    }
+                if (!transformHelper.disableJar || jarInput.file.absolutePath.contains('SensorsAnalyticsSDK')) {
+                    Logger.info("开始遍历 jar：" + jarInput.file.absolutePath)
+                    modifiedJar = modifyJarFile(jarInput.file, context.getTemporaryDir())
+                    Logger.info("结束遍历 jar：" + jarInput.file.absolutePath)
                 }
                 if (modifiedJar == null) {
                     modifiedJar = jarInput.file
@@ -160,66 +144,10 @@ class SensorsAnalyticsTransform extends Transform {
         }
     }
 
-    private static boolean isShouldModifyJar(String jarFileName) {
-        return true
-        /*
-        if (project.sensorsAnalytics.useInclude) {
-            Iterator<String> iterator = include.iterator()
-            while (iterator.hasNext()) {
-                String jarName = iterator.next()
-                if (jarFileName.contains(jarName)) {
-                    return true
-                }
-            }
-            return false
-        } else {
-            Iterator<String> iterator = exclude.iterator()
-            while (iterator.hasNext()) {
-                String jarName = iterator.next()
-                if (jarFileName.contains(jarName)) {
-                    return false
-                }
-            }
-            return true
-        }
-        */
-    }
-
-    private static boolean isShouldModifyClass(String className) {
-        if (className.contains('R$') ||
-                className.contains('R2$') ||
-                className.contains('R.class') ||
-                className.contains('R2.class') ||
-                className.contains('BuildConfig.class')) {
-            return false
-        }
-
-        if (project.sensorsAnalytics.useInclude) {
-            Iterator<String> iterator = include.iterator()
-            while (iterator.hasNext()) {
-                String packageName = iterator.next()
-
-                if (className.startsWith(packageName)) {
-                    return true
-                }
-            }
-            return false
-        } else {
-            Iterator<String> iterator = exclude.iterator()
-            while (iterator.hasNext()) {
-                String packageName = iterator.next()
-                if (className.startsWith(packageName)) {
-                    return false
-                }
-            }
-            return true
-        }
-    }
-
     /**
      * 修改 jar 文件中对应字节码
      */
-    private static File modifyJarFile(File jarFile, File tempDir) {
+    private File modifyJarFile(File jarFile, File tempDir) {
         if (jarFile) {
             return modifyJar(jarFile, tempDir, true)
 
@@ -227,7 +155,7 @@ class SensorsAnalyticsTransform extends Transform {
         return null
     }
 
-    static File modifyJar(File jarFile, File tempDir, boolean nameHex) {
+    private File modifyJar(File jarFile, File tempDir, boolean nameHex) {
         /**
          * 读取原 jar
          */
@@ -267,8 +195,9 @@ class SensorsAnalyticsTransform extends Transform {
                 }
                 if (entryName.endsWith(".class")) {
                     className = entryName.replace("/", ".").replace(".class", "")
-                    if (isShouldModifyClass(className)) {
-                        modifiedClassBytes = modifyClasses(className, sourceClassBytes)
+                    ClassNameAnalytics classNameAnalytics = transformHelper.analytics(className)
+                    if (classNameAnalytics.isShouldModify) {
+                        modifiedClassBytes = modifyClasses(sourceClassBytes,classNameAnalytics)
                     }
                 }
                 if (modifiedClassBytes == null) {
@@ -284,35 +213,44 @@ class SensorsAnalyticsTransform extends Transform {
         return outputJar
     }
 
-    static byte[] modifyClasses(String className, byte[] srcByteCode) {
+    private byte[] modifyClasses(byte[] srcByteCode,ClassNameAnalytics classNameAnalytics) {
         try {
-            return modifyClass(srcByteCode)
-        } catch (Exception e) {
+            return modifyClass(srcByteCode,classNameAnalytics)
+        } catch (UnsupportedOperationException e) {
+            throw e
+        } catch (Exception ex) {
             return srcByteCode
         }
     }
     /**
      * 真正修改类中方法字节码
      */
-    private static byte[] modifyClass(byte[] srcClass) throws IOException {
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS)
-        ClassVisitor classVisitor = new SensorsAnalyticsClassVisitor(classWriter)
-        ClassReader cr = new ClassReader(srcClass)
-        cr.accept(classVisitor, ClassReader.EXPAND_FRAMES)
-        return classWriter.toByteArray()
+    private byte[] modifyClass(byte[] srcClass,ClassNameAnalytics classNameAnalytics) throws IOException {
+        try {
+            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS)
+            ClassVisitor classVisitor = new SensorsAnalyticsClassVisitor(classWriter,classNameAnalytics,transformHelper)
+            ClassReader cr = new ClassReader(srcClass)
+            cr.accept(classVisitor, ClassReader.EXPAND_FRAMES)
+            return classWriter.toByteArray()
+        } catch (UnsupportedOperationException e) {
+            throw e
+        } catch(Exception ex) {
+            return srcClass
+        }
     }
 
     /**
      * 目录文件中修改对应字节码
      */
-    private static File modifyClassFile(File dir, File classFile, File tempDir) {
+    private File modifyClassFile(File dir, File classFile, File tempDir) {
         File modified = null
         FileOutputStream outputStream = null
         try {
             String className = path2ClassName(classFile.absolutePath.replace(dir.absolutePath + File.separator, ""))
-            if (isShouldModifyClass(className)) {
+            ClassNameAnalytics classNameAnalytics = transformHelper.analytics(className)
+            if (classNameAnalytics.isShouldModify) {
                 byte[] sourceClassBytes = IOUtils.toByteArray(new FileInputStream(classFile))
-                byte[] modifiedClassBytes = modifyClasses(className, sourceClassBytes)
+                byte[] modifiedClassBytes = modifyClasses(sourceClassBytes,classNameAnalytics)
                 if (modifiedClassBytes) {
                     modified = new File(tempDir, className.replace('.', '') + '.class')
                     if (modified.exists()) {
@@ -339,7 +277,7 @@ class SensorsAnalyticsTransform extends Transform {
         return modified
     }
 
-    static String path2ClassName(String pathName) {
+    private String path2ClassName(String pathName) {
         pathName.replace(File.separator, ".").replace(".class", "")
     }
 }
