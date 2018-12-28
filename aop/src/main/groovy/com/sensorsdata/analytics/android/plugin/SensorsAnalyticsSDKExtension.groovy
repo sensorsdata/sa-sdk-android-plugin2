@@ -7,5 +7,6 @@ class SensorsAnalyticsSDKExtension {
     boolean disableJsInterface = false
     boolean disableAndroidID = false
     boolean disableMacAddress = false
+    boolean disableCarrier = false
 }
 

@@ -5,11 +5,13 @@ import com.android.build.api.transform.DirectoryInput
 import com.android.build.api.transform.Format
 import com.android.build.api.transform.JarInput
 import com.android.build.api.transform.QualifiedContent
+import com.android.build.api.transform.Status
 import com.android.build.api.transform.Transform
 import com.android.build.api.transform.TransformException
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
 import com.android.build.gradle.internal.pipeline.TransformManager
+import com.android.ide.common.internal.WaitableExecutor
 import groovy.io.FileType
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.io.FileUtils
@@ -18,6 +20,7 @@ import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
 
+import java.util.concurrent.Callable
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
@@ -25,11 +28,13 @@ import java.util.zip.ZipEntry
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.0.0"
+    public static final String VERSION = "3.0.1"
     public static final String MIN_SDK_VERSION = "3.0.0"
+    private WaitableExecutor waitableExecutor
 
     SensorsAnalyticsTransform(SensorsAnalyticsTransformHelper transformHelper) {
         this.transformHelper = transformHelper
+        this.waitableExecutor = WaitableExecutor.useGlobalSharedThreadPool()
     }
 
     @Override
@@ -49,13 +54,17 @@ class SensorsAnalyticsTransform extends Transform {
 
     @Override
     boolean isIncremental() {
-        return false
+        return true
     }
 
-    /**
+    @Override
+    boolean isCacheable() {
+        return true
+    }
+/**
      * 打印提示信息
      */
-    private void printCopyRight() {
+    private static void printCopyRight() {
         println()
         println("\033[40;32m" + "####################################################################" + "\033[0m")
         println("\033[40;32m" + "########                                                    ########" + "\033[0m")
@@ -75,12 +84,13 @@ class SensorsAnalyticsTransform extends Transform {
          */
         printCopyRight()
 
-        if (!incremental) {
-            outputProvider.deleteAll()
-        }
-
         transformHelper.onTransform()
 
+        println("[SensorsAnalytics]: 是否增量编译:$isIncremental")
+        long startTime = System.currentTimeMillis()
+        if (!isIncremental) {
+            outputProvider.deleteAll()
+        }
         /**
          * 遍历输入文件
          */
@@ -89,59 +99,139 @@ class SensorsAnalyticsTransform extends Transform {
              * 遍历 jar
              */
             input.jarInputs.each { JarInput jarInput ->
-                String destName = jarInput.file.name
-                /**
-                 * 截取文件路径的md5值重命名输出文件,因为可能同名,会覆盖
-                 */
-                def hexName = DigestUtils.md5Hex(jarInput.file.absolutePath).substring(0, 8)
-                if (destName.endsWith(".jar")) {
-                    destName = destName.substring(0, destName.length() - 4)
-                }
-                /** 获得输出文件*/
-                File dest = outputProvider.getContentLocation(destName + "_" + hexName, jarInput.contentTypes, jarInput.scopes, Format.JAR)
-
-                def modifiedJar = null
-                if (!transformHelper.disableJar || jarInput.file.absolutePath.contains('SensorsAnalyticsSDK')) {
-                    Logger.info("开始遍历 jar：" + jarInput.file.absolutePath)
-                    modifiedJar = modifyJarFile(jarInput.file, context.getTemporaryDir())
-                    Logger.info("结束遍历 jar：" + jarInput.file.absolutePath)
-                }
-                if (modifiedJar == null) {
-                    modifiedJar = jarInput.file
-                }
-                FileUtils.copyFile(modifiedJar, dest)
+                waitableExecutor.execute(new Callable<Object>() {
+                    @Override
+                    Object call() throws Exception {
+                        forEachJar(isIncremental, jarInput, outputProvider, context)
+                        return null
+                    }
+                })
             }
 
             /**
              * 遍历目录
              */
             input.directoryInputs.each { DirectoryInput directoryInput ->
-                File dest = outputProvider.getContentLocation(directoryInput.name, directoryInput.contentTypes, directoryInput.scopes, Format.DIRECTORY)
                 //Logger.info("||-->开始遍历特定目录  ${dest.absolutePath}")
                 File dir = directoryInput.file
-                if (dir) {
-                    HashMap<String, File> modifyMap = new HashMap<>()
-                    dir.traverse(type: FileType.FILES, nameFilter: ~/.*\.class/) {
-                        File classFile ->
-                            File modified = modifyClassFile(dir, classFile, context.getTemporaryDir())
-                            if (modified != null) {
-                                //key为相对路径
-                                modifyMap.put(classFile.absolutePath.replace(dir.absolutePath, ""), modified)
-                            }
+                File dest = outputProvider.getContentLocation(directoryInput.getName(),
+                        directoryInput.getContentTypes(), directoryInput.getScopes(),
+                        Format.DIRECTORY)
+                FileUtils.forceMkdir(dest)
+                String srcDirPath = dir.absolutePath
+                String destDirPath = dest.absolutePath
+                if (isIncremental) {
+                    Map<File, Status> fileStatusMap = directoryInput.getChangedFiles()
+                    for (Map.Entry<File, Status> changedFile : fileStatusMap.entrySet()) {
+                        Status status = changedFile.getValue()
+                        File inputFile = changedFile.getKey()
+                        String destFilePath = inputFile.absolutePath.replace(srcDirPath, destDirPath)
+                        File destFile = new File(destFilePath)
+                        switch (status) {
+                            case Status.NOTCHANGED:
+                                break
+                            case Status.REMOVED:
+                                Logger.info("目录 status = $status:$inputFile.absolutePath")
+                                if (destFile.exists()) {
+                                    //noinspection ResultOfMethodCallIgnored
+                                    destFile.delete()
+                                }
+                                break
+                            case Status.ADDED:
+                            case Status.CHANGED:
+                                Logger.info("目录 status = $status:$inputFile.absolutePath")
+                                File modified = modifyClassFile(dir, inputFile, context.getTemporaryDir())
+                                if (destFile.exists()) {
+                                    destFile.delete()
+                                }
+                                if (modified != null) {
+                                    FileUtils.copyFile(modified, destFile)
+                                    modified.delete()
+                                } else {
+                                    FileUtils.copyFile(inputFile, destFile)
+                                }
+                                break
+                            default:
+                                break
+                        }
+
                     }
-                    FileUtils.copyDirectory(directoryInput.file, dest)
-                    modifyMap.entrySet().each {
-                        Map.Entry<String, File> en ->
-                            File target = new File(dest.absolutePath + en.getKey())
-                            if (target.exists()) {
-                                target.delete()
-                            }
-                            FileUtils.copyFile(en.getValue(), target)
-                            en.getValue().delete()
+                } else {
+                    FileUtils.copyDirectory(dir, dest)
+                    dir.traverse(type: FileType.FILES, nameFilter: ~/.*\.class/) {
+                        File inputFile ->
+                            waitableExecutor.execute(new Callable<Object>() {
+                                @Override
+                                Object call() throws Exception {
+                                    File modified = modifyClassFile(dir, inputFile, context.getTemporaryDir())
+                                    if (modified != null) {
+                                        File target = new File(inputFile.absolutePath.replace(srcDirPath, destDirPath))
+                                        if (target.exists()) {
+                                            target.delete()
+                                        }
+                                        FileUtils.copyFile(modified, target)
+                                        modified.delete()
+                                    }
+                                    return null
+                                }
+                            })
                     }
                 }
+
             }
         }
+
+        waitableExecutor.waitForTasksWithQuickFail(true)
+
+        println("[SensorsAnalytics]: 此次编译共耗时:${System.currentTimeMillis() - startTime}毫秒")
+    }
+
+    void forEachJar(boolean isIncremental,JarInput jarInput,TransformOutputProvider outputProvider,Context context){
+        String destName = jarInput.file.name
+        /**
+         * 截取文件路径的md5值重命名输出文件,因为可能同名,会覆盖
+         */
+        def hexName = DigestUtils.md5Hex(jarInput.file.absolutePath).substring(0, 8)
+        if (destName.endsWith(".jar")) {
+            destName = destName.substring(0, destName.length() - 4)
+        }
+        /** 获得输出文件*/
+        File destFile = outputProvider.getContentLocation(destName + "_" + hexName, jarInput.contentTypes, jarInput.scopes, Format.JAR)
+        if (isIncremental) {
+            Status status = jarInput.getStatus()
+            switch (status) {
+                case Status.NOTCHANGED:
+                    break
+                case Status.ADDED:
+                case Status.CHANGED:
+                    Logger.info("jar status = $status:$destFile.absolutePath")
+                    transformJar(destFile,jarInput,context)
+                    break
+                case Status.REMOVED:
+                    Logger.info("jar status = $status:$destFile.absolutePath")
+                    if (destFile.exists()) {
+                        FileUtils.forceDelete(destFile)
+                    }
+                    break
+                default:
+                    break
+            }
+        } else {
+            transformJar(destFile,jarInput,context)
+        }
+    }
+
+    void transformJar(File dest,JarInput jarInput,Context context) {
+        def modifiedJar = null
+        if (!transformHelper.disableJar || jarInput.file.absolutePath.contains('SensorsAnalyticsSDK')) {
+            Logger.info("开始遍历 jar：" + jarInput.file.absolutePath)
+            modifiedJar = modifyJarFile(jarInput.file, context.getTemporaryDir())
+            Logger.info("结束遍历 jar：" + jarInput.file.absolutePath)
+        }
+        if (modifiedJar == null) {
+            modifiedJar = jarInput.file
+        }
+        FileUtils.copyFile(modifiedJar, dest)
     }
 
     /**
@@ -219,6 +309,10 @@ class SensorsAnalyticsTransform extends Transform {
         } catch (UnsupportedOperationException e) {
             throw e
         } catch (Exception ex) {
+            ex.printStackTrace()
+            if (transformHelper.debug) {
+                throw new Error()
+            }
             return srcByteCode
         }
     }
@@ -235,6 +329,10 @@ class SensorsAnalyticsTransform extends Transform {
         } catch (UnsupportedOperationException e) {
             throw e
         } catch(Exception ex) {
+            ex.printStackTrace()
+            if (transformHelper.debug) {
+                throw new Error()
+            }
             return srcClass
         }
     }
@@ -277,7 +375,7 @@ class SensorsAnalyticsTransform extends Transform {
         return modified
     }
 
-    private String path2ClassName(String pathName) {
+    private static String path2ClassName(String pathName) {
         pathName.replace(File.separator, ".").replace(".class", "")
     }
 }

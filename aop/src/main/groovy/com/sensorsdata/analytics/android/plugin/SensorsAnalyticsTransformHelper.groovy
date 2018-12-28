@@ -12,6 +12,8 @@ class SensorsAnalyticsTransformHelper {
 
     boolean useInclude
 
+    boolean debug
+
     HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx']
     HashSet<String> include = ['butterknife.internal.DebouncingOnClickListener',
                                               'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
@@ -25,6 +27,7 @@ class SensorsAnalyticsTransformHelper {
         useInclude = extension.useInclude
         disableJar = extension.disableJar
         lambdaEnabled = extension.lambdaEnabled
+        debug = extension.debug
         HashSet<String> excludePackages = extension.exclude
         if (excludePackages != null) {
             exclude.addAll(excludePackages)

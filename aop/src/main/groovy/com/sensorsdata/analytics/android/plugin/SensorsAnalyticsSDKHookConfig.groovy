@@ -51,6 +51,14 @@ class SensorsAnalyticsSDKHookConfig {
         methodCells.put(methodName,macMethodCells)
     }
 
+    void disableCarrier(String methodName) {
+        def carrier = new SensorsAnalyticsMethodCell('getCarrier','(Landroid/content/Context;)Ljava/lang/String;','createGetCarrier')
+        def macMethods = [carrier]
+        def macMethodCells = new HashMap<String,ArrayList<SensorsAnalyticsMethodCell>>()
+        macMethodCells.put("com/sensorsdata/analytics/android/sdk/util/SensorsDataUtils",macMethods)
+        methodCells.put(methodName,macMethodCells)
+    }
+
     //todo 扩展
 
     void createGetIMEI(ClassVisitor classVisitor, SensorsAnalyticsMethodCell methodCell) {
@@ -119,5 +127,16 @@ class SensorsAnalyticsSDKHookConfig {
         mv.visitMaxs(1, 1)
         mv.visitEnd()
     }
+
+    void createGetCarrier(ClassVisitor classVisitor, SensorsAnalyticsMethodCell methodCell) {
+        def mv = classVisitor.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, methodCell.name, methodCell.desc, null, null)
+        mv.visitCode()
+        mv.visitLdcInsn("")
+        mv.visitInsn(Opcodes.ARETURN)
+        mv.visitMaxs(1, 1)
+        mv.visitEnd()
+    }
+
+    //todo 扩展
 
 }

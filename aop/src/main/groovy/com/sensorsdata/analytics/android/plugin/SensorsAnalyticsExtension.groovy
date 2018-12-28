@@ -1,7 +1,7 @@
 package com.sensorsdata.analytics.android.plugin
 
 import org.gradle.api.Action
-import org.gradle.api.model.ObjectFactory
+import org.gradle.internal.reflect.Instantiator
 
 
 class SensorsAnalyticsExtension {
@@ -15,9 +15,8 @@ class SensorsAnalyticsExtension {
 
     SensorsAnalyticsSDKExtension sdk
 
-    @javax.inject.Inject
-    SensorsAnalyticsExtension(ObjectFactory objectFactory) {
-        sdk = objectFactory.newInstance(SensorsAnalyticsSDKExtension)
+    SensorsAnalyticsExtension(Instantiator ins) {
+        sdk = ins.newInstance(SensorsAnalyticsSDKExtension)
     }
 
     void sdk(Action<? super SensorsAnalyticsSDKExtension> action) {
