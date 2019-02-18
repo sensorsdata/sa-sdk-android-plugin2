@@ -2,37 +2,30 @@ package com.sensorsdata.analytics.android.plugin
 
 class SensorsAnalyticsTransformHelper {
 
-    Object extension
+    SensorsAnalyticsExtension extension
 
     SensorsAnalyticsSDKHookConfig sensorsAnalyticsHookConfig
 
-    boolean disableJar
+    boolean disableSensorsAnalyticsMultiThread
 
-    boolean lambdaEnabled
+    boolean disableSensorsAnalyticsIncremental
 
-    boolean useInclude
-
-    boolean debug
-
-    HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx']
+    HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx','com.qiyukf','com.amap.api','com.autonavi']
     HashSet<String> include = ['butterknife.internal.DebouncingOnClickListener',
                                               'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
                                               'com.facebook.react.uimanager.NativeViewHierarchyManager']
 
-    SensorsAnalyticsTransformHelper(Object extension) {
+    SensorsAnalyticsTransformHelper(SensorsAnalyticsExtension extension) {
         this.extension = extension
     }
 
     void onTransform() {
-        useInclude = extension.useInclude
-        disableJar = extension.disableJar
-        lambdaEnabled = extension.lambdaEnabled
-        debug = extension.debug
-        HashSet<String> excludePackages = extension.exclude
+        println("sensorsAnalytics {\n"+extension+"\n}")
+        ArrayList<String> excludePackages = extension.exclude
         if (excludePackages != null) {
             exclude.addAll(excludePackages)
         }
-        HashSet<String> includePackages = extension.include
+        ArrayList<String> includePackages = extension.include
         if (includePackages != null) {
             include.addAll(includePackages)
         }
@@ -70,7 +63,7 @@ class SensorsAnalyticsTransformHelper {
                 classNameAnalytics.isShouldModify = true
             }
         } else if (!classNameAnalytics.isAndroidGenerated()) {
-            if (useInclude) {
+            if (extension.useInclude) {
                 for (pkgName in include) {
                     if (className.startsWith(pkgName)) {
                         classNameAnalytics.isShouldModify = true

@@ -1,14 +1,18 @@
 package com.sensorsdata.analytics.android.plugin
 
-import org.objectweb.asm.*
+import org.objectweb.asm.AnnotationVisitor
+import org.objectweb.asm.Attribute
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.commons.AdviceAdapter
+import org.objectweb.asm.Opcodes
 
 class SensorsAnalyticsDefaultMethodVisitor extends AdviceAdapter {
 
     String methodName
 
     SensorsAnalyticsDefaultMethodVisitor(MethodVisitor mv, int access, String name, String desc) {
-        super(Opcodes.ASM6, mv, access, name, desc)
+        super(Opcodes.ASM5, mv, access, name, desc)
         methodName = name
         Logger.info("开始扫描方法：${Logger.accCode2String(access)} ${methodName}${desc}")
     }
@@ -22,8 +26,8 @@ class SensorsAnalyticsDefaultMethodVisitor extends AdviceAdapter {
     }
 
     @Override
-    void visitMethodInsn(int opcode, String owner, String name, String desc) {
-        super.visitMethodInsn(opcode, owner, name, desc)
+    void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+        super.visitMethodInsn(opcode, owner, name, desc, itf)
     }
 
     @Override

@@ -12,17 +12,25 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
         Instantiator ins = ((DefaultGradle) project.getGradle()).getServices().get(
                 Instantiator)
         def args = [ins] as Object[]
-        Object extension = project.extensions.create("sensorsAnalytics", SensorsAnalyticsExtension,args)
+        SensorsAnalyticsExtension extension = project.extensions.create("sensorsAnalytics", SensorsAnalyticsExtension,args)
 
         boolean disableSensorsAnalyticsPlugin = false
+        boolean disableSensorsAnalyticsPluginNew = false
+        boolean disableSensorsAnalyticsMultiThread = false
+        boolean disableSensorsAnalyticsIncremental = false
         Properties properties = new Properties()
         if (project.rootProject.file('gradle.properties').exists()) {
             properties.load(project.rootProject.file('gradle.properties').newDataInputStream())
             disableSensorsAnalyticsPlugin = Boolean.parseBoolean(properties.getProperty("disableSensorsAnalyticsPlugin", "false"))
+            disableSensorsAnalyticsPluginNew = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disablePlugin", "false"))
+            disableSensorsAnalyticsMultiThread = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disableMultiThread", "false"))
+            disableSensorsAnalyticsIncremental = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disableIncremental", "false"))
         }
-        if (!disableSensorsAnalyticsPlugin) {
+        if (!disableSensorsAnalyticsPlugin && !disableSensorsAnalyticsPluginNew) {
             AppExtension appExtension = project.extensions.findByType(AppExtension.class)
             SensorsAnalyticsTransformHelper transformHelper = new SensorsAnalyticsTransformHelper(extension)
+            transformHelper.disableSensorsAnalyticsIncremental = disableSensorsAnalyticsIncremental
+            transformHelper.disableSensorsAnalyticsMultiThread = disableSensorsAnalyticsMultiThread
             appExtension.registerTransform(new SensorsAnalyticsTransform(transformHelper))
 
             project.afterEvaluate {

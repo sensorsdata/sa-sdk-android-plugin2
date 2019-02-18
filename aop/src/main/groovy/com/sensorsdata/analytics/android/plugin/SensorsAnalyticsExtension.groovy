@@ -10,8 +10,8 @@ class SensorsAnalyticsExtension {
     boolean useInclude = false
     boolean lambdaEnabled = true
 
-    HashSet<String> exclude = []
-    HashSet<String> include = []
+    ArrayList<String> exclude = []
+    ArrayList<String> include = []
 
     SensorsAnalyticsSDKExtension sdk
 
@@ -21,6 +21,35 @@ class SensorsAnalyticsExtension {
 
     void sdk(Action<? super SensorsAnalyticsSDKExtension> action) {
         action.execute(sdk)
+    }
+
+    @Override
+    String toString() {
+        StringBuilder excludeBuilder = new StringBuilder()
+        int length = exclude.size()
+        for (int i = 0; i < length; i++) {
+            excludeBuilder.append("'").append(exclude.get(i)).append("'")
+            if (i != length - 1) {
+                excludeBuilder.append(",")
+            }
+        }
+
+        StringBuilder includeBuilder = new StringBuilder()
+        length = include.size()
+        for (int i = 0; i < length; i++) {
+            includeBuilder.append("'").append(include.get(i)).append("'")
+            if (i != length - 1) {
+                includeBuilder.append(",")
+            }
+        }
+        return  " debug=" + debug + "\n" +
+                " disableJar=" + disableJar + "\n" +
+                " useInclude=" + useInclude + "\n" +
+                " lambdaEnabled=" + lambdaEnabled + "\n" +
+                " exclude=[" + excludeBuilder.toString() +"]"+ "\n" +
+                " include=[" + includeBuilder.toString() +"]"+ "\n" +
+                " sdk {\n" + sdk + "\n"+
+                "}"
     }
 }
 

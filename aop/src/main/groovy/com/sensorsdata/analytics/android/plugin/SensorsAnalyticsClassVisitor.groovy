@@ -25,7 +25,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
     }
 
     SensorsAnalyticsClassVisitor(final ClassVisitor classVisitor,ClassNameAnalytics classNameAnalytics,SensorsAnalyticsTransformHelper transformHelper) {
-        super(Opcodes.ASM6, classVisitor)
+        super(Opcodes.ASM5, classVisitor)
         this.classVisitor = classVisitor
         this.classNameAnalytics = classNameAnalytics
         this.transformHelper = transformHelper
@@ -179,7 +179,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                 /**
                  * 在 android.gradle 的 3.2.1 版本中，针对 view 的 setOnClickListener 方法 的 lambda 表达式做特殊处理。
                  */
-                if (transformHelper.lambdaEnabled) {
+                if (transformHelper.extension.lambdaEnabled) {
                     if (name.trim().startsWith('lambda$') && SensorsAnalyticsUtil.isPrivate(access) && SensorsAnalyticsUtil.isSynthetic(access)) {
                         if (desc == '(Landroid/view/MenuItem;)Z' && SensorsAnalyticsUtil.isStatic(access)) {
                             SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sLambdaMethods.get(desc + '2')
@@ -343,16 +343,15 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                     if (sensorsAnalyticsMethodCell != null && mInterfaces.contains(sensorsAnalyticsMethodCell.parent)) {
                         visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
                         isHasTracked = true
+                        return
                     }
                 }
 
-                if (!isHasTracked) {
-                    if (nameDesc == 'onClick(Landroid/view/View;)V') {
-                        methodVisitor.visitVarInsn(ALOAD, 1)
-                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackViewOnClick", "(Landroid/view/View;)V", false)
-                        isHasTracked = true
-                    }
-                }
+                if (nameDesc == 'onClick(Landroid/view/View;)V') {
+                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackViewOnClick", "(Landroid/view/View;)V", false)
+                     isHasTracked = true
+                 }
             }
 
             /**
@@ -369,19 +368,13 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                 if (s == 'Lcom/sensorsdata/analytics/android/sdk/SensorsDataTrackViewOnClick;') {
                     isSensorsDataTrackViewOnClickAnnotation = true
                     Logger.info("发现 ${name}${desc} 有注解 @SensorsDataTrackViewOnClick")
-                }
-
-                if (s == 'Lcom/sensorsdata/analytics/android/sdk/SensorsDataIgnoreTrackOnClick;') {
+                } else if (s == 'Lcom/sensorsdata/analytics/android/sdk/SensorsDataIgnoreTrackOnClick;') {
                     isSensorsDataIgnoreTrackOnClick = true
                     Logger.info("发现 ${name}${desc} 有注解 @SensorsDataIgnoreTrackOnClick")
-                }
-
-                if (s == 'Lcom/sensorsdata/analytics/android/sdk/SensorsDataInstrumented;') {
+                } else if (s == 'Lcom/sensorsdata/analytics/android/sdk/SensorsDataInstrumented;') {
                     isHasInstrumented = true
-                }
-
-                if (s == 'Lcom/sensorsdata/analytics/android/sdk/SensorsDataTrackEvent;') {
-                    return new AnnotationVisitor(Opcodes.ASM6) {
+                } else if (s == 'Lcom/sensorsdata/analytics/android/sdk/SensorsDataTrackEvent;') {
+                    return new AnnotationVisitor(Opcodes.ASM5) {
                         @Override
                         void visit(String key, Object value) {
                             super.visit(key, value)

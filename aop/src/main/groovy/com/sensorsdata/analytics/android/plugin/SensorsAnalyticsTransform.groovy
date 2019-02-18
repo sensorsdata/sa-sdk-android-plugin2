@@ -28,13 +28,15 @@ import java.util.zip.ZipEntry
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.0.1"
+    public static final String VERSION = "3.0.2"
     public static final String MIN_SDK_VERSION = "3.0.0"
     private WaitableExecutor waitableExecutor
 
     SensorsAnalyticsTransform(SensorsAnalyticsTransformHelper transformHelper) {
         this.transformHelper = transformHelper
-        this.waitableExecutor = WaitableExecutor.useGlobalSharedThreadPool()
+        if (!transformHelper.disableSensorsAnalyticsMultiThread) {
+            waitableExecutor = WaitableExecutor.useGlobalSharedThreadPool()
+        }
     }
 
     @Override
@@ -54,12 +56,12 @@ class SensorsAnalyticsTransform extends Transform {
 
     @Override
     boolean isIncremental() {
-        return true
+        return !transformHelper.disableSensorsAnalyticsIncremental
     }
 
     @Override
     boolean isCacheable() {
-        return true
+        return !transformHelper.disableSensorsAnalyticsIncremental
     }
 /**
      * 打印提示信息
@@ -83,10 +85,10 @@ class SensorsAnalyticsTransform extends Transform {
          * 打印提示信息
          */
         printCopyRight()
-
         transformHelper.onTransform()
-
-        println("[SensorsAnalytics]: 是否增量编译:$isIncremental")
+        println("[SensorsAnalytics]: 是否开启多线程编译:${!transformHelper.disableSensorsAnalyticsMultiThread}")
+        println("[SensorsAnalytics]: 是否开启增量编译:${!transformHelper.disableSensorsAnalyticsIncremental}")
+        println("[SensorsAnalytics]: 此次是否增量编译:$isIncremental")
         long startTime = System.currentTimeMillis()
         if (!isIncremental) {
             outputProvider.deleteAll()
@@ -99,13 +101,17 @@ class SensorsAnalyticsTransform extends Transform {
              * 遍历 jar
              */
             input.jarInputs.each { JarInput jarInput ->
-                waitableExecutor.execute(new Callable<Object>() {
-                    @Override
-                    Object call() throws Exception {
-                        forEachJar(isIncremental, jarInput, outputProvider, context)
-                        return null
-                    }
-                })
+                if (waitableExecutor) {
+                    waitableExecutor.execute(new Callable<Object>() {
+                        @Override
+                        Object call() throws Exception {
+                            forEachJar(isIncremental, jarInput, outputProvider, context)
+                            return null
+                        }
+                    })
+                } else {
+                    forEachJar(isIncremental, jarInput, outputProvider, context)
+                }
             }
 
             /**
@@ -160,30 +166,39 @@ class SensorsAnalyticsTransform extends Transform {
                     FileUtils.copyDirectory(dir, dest)
                     dir.traverse(type: FileType.FILES, nameFilter: ~/.*\.class/) {
                         File inputFile ->
-                            waitableExecutor.execute(new Callable<Object>() {
-                                @Override
-                                Object call() throws Exception {
-                                    File modified = modifyClassFile(dir, inputFile, context.getTemporaryDir())
-                                    if (modified != null) {
-                                        File target = new File(inputFile.absolutePath.replace(srcDirPath, destDirPath))
-                                        if (target.exists()) {
-                                            target.delete()
-                                        }
-                                        FileUtils.copyFile(modified, target)
-                                        modified.delete()
+                            if (waitableExecutor) {
+                                waitableExecutor.execute(new Callable<Object>() {
+                                    @Override
+                                    Object call() throws Exception {
+                                        forEachDir(dir, inputFile, context, srcDirPath, destDirPath)
+                                        return null
                                     }
-                                    return null
-                                }
-                            })
+                                })
+                            } else {
+                                forEachDir(dir,inputFile,context,srcDirPath,destDirPath)
+                            }
                     }
                 }
 
             }
         }
-
-        waitableExecutor.waitForTasksWithQuickFail(true)
+        if (waitableExecutor) {
+            waitableExecutor.waitForTasksWithQuickFail(true)
+        }
 
         println("[SensorsAnalytics]: 此次编译共耗时:${System.currentTimeMillis() - startTime}毫秒")
+    }
+
+    void forEachDir(File dir , File inputFile, Context context ,String srcDirPath, String destDirPath) {
+        File modified = modifyClassFile(dir, inputFile, context.getTemporaryDir())
+        if (modified != null) {
+            File target = new File(inputFile.absolutePath.replace(srcDirPath, destDirPath))
+            if (target.exists()) {
+                target.delete()
+            }
+            FileUtils.copyFile(modified, target)
+            modified.delete()
+        }
     }
 
     void forEachJar(boolean isIncremental,JarInput jarInput,TransformOutputProvider outputProvider,Context context){
@@ -223,7 +238,7 @@ class SensorsAnalyticsTransform extends Transform {
 
     void transformJar(File dest,JarInput jarInput,Context context) {
         def modifiedJar = null
-        if (!transformHelper.disableJar || jarInput.file.absolutePath.contains('SensorsAnalyticsSDK')) {
+        if (!transformHelper.extension.disableJar || jarInput.file.absolutePath.contains('SensorsAnalyticsSDK')) {
             Logger.info("开始遍历 jar：" + jarInput.file.absolutePath)
             modifiedJar = modifyJarFile(jarInput.file, context.getTemporaryDir())
             Logger.info("结束遍历 jar：" + jarInput.file.absolutePath)
@@ -310,7 +325,7 @@ class SensorsAnalyticsTransform extends Transform {
             throw e
         } catch (Exception ex) {
             ex.printStackTrace()
-            if (transformHelper.debug) {
+            if (transformHelper.extension.debug) {
                 throw new Error()
             }
             return srcByteCode
@@ -330,7 +345,7 @@ class SensorsAnalyticsTransform extends Transform {
             throw e
         } catch(Exception ex) {
             ex.printStackTrace()
-            if (transformHelper.debug) {
+            if (transformHelper.extension.debug) {
                 throw new Error()
             }
             return srcClass
