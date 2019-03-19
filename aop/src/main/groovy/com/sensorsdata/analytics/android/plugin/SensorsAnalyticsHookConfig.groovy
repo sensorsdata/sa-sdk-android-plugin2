@@ -10,14 +10,6 @@ class SensorsAnalyticsHookConfig {
     static HashMap<String, SensorsAnalyticsMethodCell> sInterfaceMethods = new HashMap<>()
 
     static {
-        sInterfaceMethods.put('onClick(Landroid/view/View;)V', new SensorsAnalyticsMethodCell(
-                'onClick',
-                '(Landroid/view/View;)V',
-                'android/view/View$OnClickListener',
-                'trackViewOnClick',
-                '(Landroid/view/View;)V',
-                1, 1,
-                [Opcodes.ALOAD]))
         sInterfaceMethods.put('onCheckedChanged(Landroid/widget/CompoundButton;Z)V', new SensorsAnalyticsMethodCell(
                 'onCheckedChanged',
                 '(Landroid/widget/CompoundButton;Z)V',

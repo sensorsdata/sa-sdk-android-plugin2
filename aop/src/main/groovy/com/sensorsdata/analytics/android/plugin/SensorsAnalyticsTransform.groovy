@@ -28,7 +28,7 @@ import java.util.zip.ZipEntry
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.0.2"
+    public static final String VERSION = "3.0.3"
     public static final String MIN_SDK_VERSION = "3.0.0"
     private WaitableExecutor waitableExecutor
 
@@ -59,11 +59,7 @@ class SensorsAnalyticsTransform extends Transform {
         return !transformHelper.disableSensorsAnalyticsIncremental
     }
 
-    @Override
-    boolean isCacheable() {
-        return !transformHelper.disableSensorsAnalyticsIncremental
-    }
-/**
+    /**
      * 打印提示信息
      */
     private static void printCopyRight() {
@@ -302,7 +298,7 @@ class SensorsAnalyticsTransform extends Transform {
                     className = entryName.replace("/", ".").replace(".class", "")
                     ClassNameAnalytics classNameAnalytics = transformHelper.analytics(className)
                     if (classNameAnalytics.isShouldModify) {
-                        modifiedClassBytes = modifyClasses(sourceClassBytes,classNameAnalytics)
+                        modifiedClassBytes = modifyClass(sourceClassBytes,classNameAnalytics)
                     }
                 }
                 if (modifiedClassBytes == null) {
@@ -318,32 +314,18 @@ class SensorsAnalyticsTransform extends Transform {
         return outputJar
     }
 
-    private byte[] modifyClasses(byte[] srcByteCode,ClassNameAnalytics classNameAnalytics) {
-        try {
-            return modifyClass(srcByteCode,classNameAnalytics)
-        } catch (UnsupportedOperationException e) {
-            throw e
-        } catch (Exception ex) {
-            ex.printStackTrace()
-            if (transformHelper.extension.debug) {
-                throw new Error()
-            }
-            return srcByteCode
-        }
-    }
     /**
      * 真正修改类中方法字节码
      */
-    private byte[] modifyClass(byte[] srcClass,ClassNameAnalytics classNameAnalytics) throws IOException {
+    private byte[] modifyClass(byte[] srcClass, ClassNameAnalytics classNameAnalytics) {
         try {
             ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS)
-            ClassVisitor classVisitor = new SensorsAnalyticsClassVisitor(classWriter,classNameAnalytics,transformHelper)
+            ClassVisitor classVisitor = new SensorsAnalyticsClassVisitor(classWriter, classNameAnalytics, transformHelper)
             ClassReader cr = new ClassReader(srcClass)
             cr.accept(classVisitor, ClassReader.EXPAND_FRAMES)
             return classWriter.toByteArray()
-        } catch (UnsupportedOperationException e) {
-            throw e
         } catch(Exception ex) {
+            println("$classNameAnalytics.className 类执行 modifyClass 方法出现异常")
             ex.printStackTrace()
             if (transformHelper.extension.debug) {
                 throw new Error()
@@ -363,7 +345,7 @@ class SensorsAnalyticsTransform extends Transform {
             ClassNameAnalytics classNameAnalytics = transformHelper.analytics(className)
             if (classNameAnalytics.isShouldModify) {
                 byte[] sourceClassBytes = IOUtils.toByteArray(new FileInputStream(classFile))
-                byte[] modifiedClassBytes = modifyClasses(sourceClassBytes,classNameAnalytics)
+                byte[] modifiedClassBytes = modifyClass(sourceClassBytes, classNameAnalytics)
                 if (modifiedClassBytes) {
                     modified = new File(tempDir, className.replace('.', '') + '.class')
                     if (modified.exists()) {

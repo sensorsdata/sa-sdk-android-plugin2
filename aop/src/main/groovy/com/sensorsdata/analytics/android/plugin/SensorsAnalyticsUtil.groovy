@@ -49,10 +49,6 @@ class SensorsAnalyticsUtil implements Opcodes {
         return targetMenuMethodDesc.contains(nameDesc)
     }
 
-    static boolean isTargetFragmentClass(String className) {
-        return targetFragmentClass.contains(className)
-    }
-
     static boolean isInstanceOfFragment(String superName) {
         return targetFragmentClass.contains(superName)
     }

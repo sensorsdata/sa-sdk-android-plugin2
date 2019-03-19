@@ -10,7 +10,7 @@ class SensorsAnalyticsTransformHelper {
 
     boolean disableSensorsAnalyticsIncremental
 
-    HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx','com.qiyukf','com.amap.api','com.autonavi']
+    HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx','com.qiyukf']
     HashSet<String> include = ['butterknife.internal.DebouncingOnClickListener',
                                               'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
                                               'com.facebook.react.uimanager.NativeViewHierarchyManager']
