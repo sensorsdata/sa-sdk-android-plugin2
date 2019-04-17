@@ -1,3 +1,6 @@
+/**Created by renqingyou on 2018/11/01.
+ * Copyright © 2015－2019 Sensors Data Inc. All rights reserved. */
+
 package com.sensorsdata.analytics.android.plugin
 
 class ClassNameAnalytics {
@@ -25,8 +28,8 @@ class ClassNameAnalytics {
         return isSALog || isSensorsDataAPI || isSensorsDataUtils
     }
 
-    boolean isViewPager() {
-        return className == 'android.support.v4.view.ViewPager' || className == 'androidx.viewpager.widget.ViewPager'
+    boolean isLeanback() {
+        return className.startsWith("android.support.v17.leanback") || className.startsWith("androidx.leanback")
     }
 
     boolean isAndroidGenerated() {

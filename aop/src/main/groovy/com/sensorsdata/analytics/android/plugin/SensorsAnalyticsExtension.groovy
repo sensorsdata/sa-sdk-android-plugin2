@@ -1,3 +1,6 @@
+/**Created by wangzhuozhou on 2015/08/01.
+ * Copyright © 2015－2019 Sensors Data Inc. All rights reserved. */
+
 package com.sensorsdata.analytics.android.plugin
 
 import org.gradle.api.Action

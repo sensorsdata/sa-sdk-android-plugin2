@@ -1,3 +1,6 @@
+/**Created by wangzhuozhou on 2015/08/01.
+ * Copyright © 2015－2019 Sensors Data Inc. All rights reserved. */
+
 package com.sensorsdata.analytics.android.plugin
 
 import org.objectweb.asm.AnnotationVisitor
@@ -7,7 +10,7 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
-class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
+class SensorsAnalyticsClassVisitor extends ClassVisitor {
     private String mClassName
     private String mSuperName
     private String[] mInterfaces
@@ -225,15 +228,6 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                     }
                 }
 
-                /**
-                 * 处理 ViewPager
-                 */
-                if (nameDesc == 'dispatchOnPageSelected(I)V' && (mClassName == 'android/support/v4/view/ViewPager' || mClassName == 'androidx/viewpager/widget/ViewPager')) {
-                    trackViewOnClick(methodVisitor, 0)
-                    isHasTracked = true
-                    return
-                }
-
                 if (!pubAndNoStaticAccess) {
                     return
                 }
@@ -253,7 +247,10 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
 
                 /**
                  * Fragment
-                 * 目前支持 android/support/v4/app/ListFragment 和 android/support/v4/app/Fragment
+                 * 目前支持以下 Fragment 页面浏览事件：
+                 * android/app/Fragment，android/app/ListFragment， android/app/DialogFragment，
+                 * android/support/v4/app/Fragment，android/support/v4/app/ListFragment，android/support/v4/app/DialogFragment，
+                 * androidx/fragment/app/Fragment，androidx/fragment/app/ListFragment，androidx/fragment/app/DialogFragment
                  */
                 if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)) {
                     SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sFragmentMethods.get(nameDesc)
@@ -288,13 +285,13 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
                     return
                 }
 
-                if (mClassName == 'android/databinding/generated/callback/OnClickListener' && isOnClickMethod) {
+                if (isOnClickMethod && mClassName == 'android/databinding/generated/callback/OnClickListener') {
                     trackViewOnClick(methodVisitor, 1)
                     isHasTracked = true
                     return
                 }
 
-                if (mClassName.startsWith('android/') || mClassName.startsWith('androidx/')) {
+                if ((mClassName.startsWith('android/') || mClassName.startsWith('androidx/')) && !(mClassName.startsWith("android/support/v17/leanback") || mClassName.startsWith("androidx/leanback"))) {
                     return
                 }
 
@@ -378,7 +375,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor implements Opcodes {
             }
         }
         //如果java version 为1.5以前的版本，则使用JSRInlinerAdapter来删除JSR,RET指令
-        if (version <= V1_5) {
+        if (version <= Opcodes.V1_5) {
             return new SensorsAnalyticsJSRAdapter(Opcodes.ASM5, sensorsAnalyticsDefaultMethodVisitor, access, name, desc, signature, exceptions)
         }
         return sensorsAnalyticsDefaultMethodVisitor

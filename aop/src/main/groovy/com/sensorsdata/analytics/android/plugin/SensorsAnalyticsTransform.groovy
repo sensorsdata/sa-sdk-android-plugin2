@@ -1,3 +1,6 @@
+/**Created by wangzhuozhou on 2015/08/01.
+ * Copyright © 2015－2019 Sensors Data Inc. All rights reserved. */
+
 package com.sensorsdata.analytics.android.plugin
 
 import com.android.build.api.transform.Context
@@ -28,7 +31,7 @@ import java.util.zip.ZipEntry
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.0.3"
+    public static final String VERSION = "3.0.4"
     public static final String MIN_SDK_VERSION = "3.0.0"
     private WaitableExecutor waitableExecutor
 

@@ -1,3 +1,6 @@
+/**Created by renqingyou on 2018/12/01.
+ * Copyright © 2015－2019 Sensors Data Inc. All rights reserved. */
+
 package com.sensorsdata.analytics.android.plugin
 
 class SensorsAnalyticsTransformHelper {
@@ -10,7 +13,7 @@ class SensorsAnalyticsTransformHelper {
 
     boolean disableSensorsAnalyticsIncremental
 
-    HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx','com.qiyukf']
+    HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx','com.qiyukf', 'android.arch']
     HashSet<String> include = ['butterknife.internal.DebouncingOnClickListener',
                                               'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
                                               'com.facebook.react.uimanager.NativeViewHierarchyManager']
@@ -72,7 +75,7 @@ class SensorsAnalyticsTransformHelper {
                 }
             } else {
                 classNameAnalytics.isShouldModify = true
-                if (!classNameAnalytics.isViewPager()) {
+                if (!classNameAnalytics.isLeanback()) {
                     for (pkgName in exclude) {
                         if (className.startsWith(pkgName)) {
                             classNameAnalytics.isShouldModify = false

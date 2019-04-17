@@ -1,3 +1,6 @@
+/**Created by wangzhuozhou on 2015/08/01.
+ * Copyright © 2015－2019 Sensors Data Inc. All rights reserved. */
+
 package com.sensorsdata.analytics.android.plugin
 
 import jdk.internal.org.objectweb.asm.Opcodes
@@ -15,7 +18,14 @@ class SensorsAnalyticsUtil implements Opcodes {
         targetMenuMethodDesc.add("onNavigationItemSelected(Landroid/view/MenuItem;)Z")
 
         /**
-         * Fragment
+         * For Android App Fragment
+         */
+        targetFragmentClass.add('android/app/Fragment')
+        targetFragmentClass.add('android/app/ListFragment')
+        targetFragmentClass.add('android/app/DialogFragment')
+
+        /**
+         * For Support V4 Fragment
          */
         targetFragmentClass.add('android/support/v4/app/Fragment')
         targetFragmentClass.add('android/support/v4/app/ListFragment')

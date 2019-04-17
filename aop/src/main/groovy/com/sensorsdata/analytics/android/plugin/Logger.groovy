@@ -1,3 +1,5 @@
+/**Created by wangzhuozhou on 2015/08/01.
+ * Copyright © 2015－2019 Sensors Data Inc. All rights reserved. */
 package com.sensorsdata.analytics.android.plugin
 
 import java.lang.reflect.Array
@@ -11,7 +13,7 @@ class Logger {
      * 设置是否打印日志
      */
     static void setDebug(boolean isDebug) {
-        this.debug = isDebug
+        debug = isDebug
     }
 
     static boolean isDebug() {

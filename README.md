@@ -62,6 +62,12 @@ compile 'com.android.support:appcompat-v7:25.1.1'
 
 [tracklytics](https://github.com/orhanobut/tracklytics)
 
+
+## 新书推荐
+神策数据出品的[《Android 全埋点解决方案》](https://item.jd.com/12574672.html)发售啦！！！
+
+[![《Android 全埋点解决方案》](screenshots/android_autotrack_book.png)](https://item.jd.com/12574672.html)
+
 ## To Learn More
 
 See our [full manual](http://www.sensorsdata.cn/manual/android_sdk.html)

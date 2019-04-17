@@ -1,3 +1,6 @@
+/**Created by renqingyou on 2018/12/01.
+ * Copyright © 2015－2019 Sensors Data Inc. All rights reserved. */
+
 package com.sensorsdata.analytics.android.plugin;
 
 import org.objectweb.asm.MethodVisitor;
