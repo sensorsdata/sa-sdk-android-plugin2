@@ -16,7 +16,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:2.2.3'
         //添加 android-gradle-plugin 依赖
-        classpath 'com.sensorsdata.analytics.android:android-gradle-plugin2:2.0.4'
+        classpath 'com.sensorsdata.analytics.android:android-gradle-plugin2:3.0.4'
     }
 }
 
@@ -37,21 +37,16 @@ apply plugin: 'com.sensorsdata.analytics.android'
 dependencies {
    compile 'com.android.support:appcompat-v7:25.1.1'
    //添加 Sensors Analytics SDK 依赖
-   compile 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK:2.0.2'
+   compile 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK:3.1.0'
 }
 ```
 
-*注*：
-1、由于 SDK 会依赖 appcompat-v7 处理下面几个控件：
+## To Learn More
 
-* android.support.v7.widget.SwitchCompat
-* android.support.v7.app.AlertDialog
+See our [full manual](http://www.sensorsdata.cn/manual/android_sdk.html)
 
-需要添加下面依赖( 如果项目中已引入了 v7包，可以不添加 )：
-
-```android
-compile 'com.android.support:appcompat-v7:25.1.1'
-```
+或者加入 QQ 讨论群：<br>
+![ QQ 讨论群](https://github.com/sensorsdata/sa-sdk-android/raw/master/screenshots/qrCode.jpeg)
 
 ## 感谢
 [hugo](https://github.com/JakeWharton/hugo)
@@ -64,17 +59,14 @@ compile 'com.android.support:appcompat-v7:25.1.1'
 
 
 ## 新书推荐
-神策数据出品的[《Android 全埋点解决方案》](https://item.jd.com/12574672.html)发售啦！！！
+神策数据出品的[《Android 全埋点解决方案》](https://u.jd.com/2JFaeG)发售啦！！！
 
-[![《Android 全埋点解决方案》](screenshots/android_autotrack_book.png)](https://item.jd.com/12574672.html)
+[![《Android 全埋点解决方案》](https://github.com/sensorsdata/sa-sdk-android/raw/master/screenshots/android_autotrack_book.png)](https://u.jd.com/2JFaeG)
 
-## To Learn More
-
-See our [full manual](http://www.sensorsdata.cn/manual/android_sdk.html)
 
 ## License
 
-Copyright 2015－2017 Sensors Data Inc.
+Copyright 2015－2019 Sensors Data Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -93,3 +85,5 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.gradle_plugin_android_aspectjx
+
+**禁止一切基于神策数据开源 SDK 的商业活动！**

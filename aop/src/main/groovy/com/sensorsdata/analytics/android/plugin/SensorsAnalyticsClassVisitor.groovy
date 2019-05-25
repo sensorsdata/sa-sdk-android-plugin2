@@ -1,5 +1,19 @@
-/**Created by wangzhuozhou on 2015/08/01.
- * Copyright © 2015－2019 Sensors Data Inc. All rights reserved. */
+/*
+ * Created by wangzhuohou on 2015/08/01.
+ * Copyright 2015－2019 Sensors Data Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.sensorsdata.analytics.android.plugin
 
@@ -30,7 +44,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         return super.clone()
     }
 
-    SensorsAnalyticsClassVisitor(final ClassVisitor classVisitor,ClassNameAnalytics classNameAnalytics,SensorsAnalyticsTransformHelper transformHelper) {
+    SensorsAnalyticsClassVisitor(final ClassVisitor classVisitor, ClassNameAnalytics classNameAnalytics, SensorsAnalyticsTransformHelper transformHelper) {
         super(Opcodes.ASM5, classVisitor)
         this.classVisitor = classVisitor
         this.classNameAnalytics = classNameAnalytics
@@ -102,7 +116,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         }
 
         for (cell in methodCells) {
-            transformHelper.sensorsAnalyticsHookConfig."${cell.agentName}"(classVisitor,cell)
+            transformHelper.sensorsAnalyticsHookConfig."${cell.agentName}"(classVisitor, cell)
         }
 
         Logger.info("结束扫描类：${mClassName}\n")
@@ -113,14 +127,14 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
     FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
         if (classNameAnalytics.isSensorsDataAPI) {
             if ('VERSION' == name) {
-                String version = (String)value
+                String version = (String) value
                 if (SensorsAnalyticsTransform.MIN_SDK_VERSION > version) {
                     String errMessage = "你目前集成的神策埋点 SDK 版本号为 v${version}，请升级到 v${SensorsAnalyticsTransform.MIN_SDK_VERSION} 及以上的版本。详情请参考：https://github.com/sensorsdata/sa-sdk-android"
                     Logger.error(errMessage)
                     throw new Error(errMessage)
                 }
             } else if ('MIN_PLUGIN_VERSION' == name) {
-                String minPluginVersion = (String)value
+                String minPluginVersion = (String) value
                 if (minPluginVersion != "" && minPluginVersion != null) {
                     if (SensorsAnalyticsTransform.VERSION < minPluginVersion) {
                         String errMessage = "你目前集成的神策插件版本号为 v${SensorsAnalyticsTransform.VERSION}，请升级到 v${minPluginVersion} 及以上的版本。详情请参考：https://github.com/sensorsdata/sa-sdk-android-plugin2"
@@ -132,8 +146,8 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         }
         return super.visitField(access, name, descriptor, signature, value)
     }
-/**
-     *  该方法是当扫描器扫描到类的方法时进行调用
+    /**
+     * 该方法是当扫描器扫描到类的方法时进行调用
      * @param access 表示方法的修饰符
      * @param name 表示方法名，在 ASM 中 “visitMethod” 方法会处理（构造方法、静态代码块、私有方法、受保护的方法、共有方法、native类型方法）。
      *                  在这些范畴中构造方法的方法名为 “<init>”，静态代码块的方法名为 “<clinit>”。
@@ -162,6 +176,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
             int variableID = 0
             //nameDesc是'onClick(Landroid/view/View;)V'字符串
             boolean isOnClickMethod = false
+            boolean isOnItemClickMethod = false
             //name + desc
             String nameDesc
 
@@ -185,6 +200,11 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 pubAndNoStaticAccess = SensorsAnalyticsUtil.isPublic(access) && !SensorsAnalyticsUtil.isStatic(access)
                 if ((nameDesc == 'onClick(Landroid/view/View;)V') && pubAndNoStaticAccess) {
                     isOnClickMethod = true
+                    variableID = newLocal(Type.getObjectType("java/lang/Integer"))
+                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitVarInsn(ASTORE, variableID)
+                } else if (nameDesc == 'onItemClick(Landroid/widget/AdapterView;Landroid/view/View;IJ)V' && pubAndNoStaticAccess) {
+                    isOnItemClickMethod = true
                     variableID = newLocal(Type.getObjectType("java/lang/Integer"))
                     methodVisitor.visitVarInsn(ALOAD, 1)
                     methodVisitor.visitVarInsn(ASTORE, variableID)
@@ -319,11 +339,20 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 }
 
                 if (mInterfaces != null && mInterfaces.length > 0) {
-                    SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sInterfaceMethods.get(nameDesc)
-                    if (sensorsAnalyticsMethodCell != null && mInterfaces.contains(sensorsAnalyticsMethodCell.parent)) {
-                        visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                    if (isOnItemClickMethod && mInterfaces.contains('android/widget/AdapterView$OnItemClickListener')) {
+                        methodVisitor.visitVarInsn(ALOAD, variableID)
+                        methodVisitor.visitVarInsn(ALOAD, 2)
+                        methodVisitor.visitVarInsn(ILOAD, 3)
+                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackListView", "(Landroid/widget/AdapterView;Landroid/view/View;I)V", false)
                         isHasTracked = true
                         return
+                    } else {
+                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sInterfaceMethods.get(nameDesc)
+                        if (sensorsAnalyticsMethodCell != null && mInterfaces.contains(sensorsAnalyticsMethodCell.parent)) {
+                            visitMethodWithLoadedParams(methodVisitor, INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                            isHasTracked = true
+                            return
+                        }
                     }
                 }
 
@@ -363,7 +392,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                         void visit(String key, Object value) {
                             super.visit(key, value)
                             if ("eventName" == key) {
-                                eventName = (String)value
+                                eventName = (String) value
                             } else if ("properties" == key) {
                                 eventProperties = value.toString()
                             }
