@@ -20,6 +20,7 @@ package com.sensorsdata.analytics.android.plugin
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
+import org.objectweb.asm.Handle
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -38,6 +39,8 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
     private ArrayList<SensorsAnalyticsMethodCell> methodCells = new ArrayList<>()
 
     private int version
+
+    private HashMap<String, SensorsAnalyticsMethodCell> mLambdaMethodCells = new HashMap<>()
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
@@ -80,9 +83,12 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         mInterfaces = interfaces
         this.version = version
         super.visit(version, access, name, signature, superName, interfaces)
-        Logger.info("开始扫描类：${mClassName}")
-        Logger.info("类详情：version=${version};\taccess=${Logger.accCode2String(access)};\tname=${name};\tsignature=${signature};\tsuperName=${superName};\tinterfaces=${interfaces.toArrayString()}\n")
+        if (Logger.debug) {
+            Logger.info("开始扫描类：${mClassName}")
+            Logger.info("类详情：version=${version};\taccess=${Logger.accCode2String(access)};\tname=${name};\tsignature=${signature};\tsuperName=${superName};\tinterfaces=${interfaces.toArrayString()}\n")
+        }
     }
+
 
     /**
      * 该方法是当扫描器完成类扫描时才会调用，如果想在类中追加某些方法，可以在该方法中实现。
@@ -94,7 +100,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)) {
             MethodVisitor mv
             // 添加剩下的方法，确保super.onHiddenChanged(hidden);等先被调用
-            Iterator<Map.Entry<String, SensorsAnalyticsMethodCell>> iterator = SensorsAnalyticsHookConfig.sFragmentMethods.entrySet().iterator()
+            Iterator<Map.Entry<String, SensorsAnalyticsMethodCell>> iterator = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.entrySet().iterator()
             while (iterator.hasNext()) {
                 Map.Entry<String, SensorsAnalyticsMethodCell> entry = iterator.next()
                 String key = entry.getKey()
@@ -107,7 +113,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 // call super
                 visitMethodWithLoadedParams(mv, Opcodes.INVOKESPECIAL, mSuperName, methodCell.name, methodCell.desc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
                 // call injected method
-                visitMethodWithLoadedParams(mv, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, methodCell.agentName, methodCell.agentDesc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
+                visitMethodWithLoadedParams(mv, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, methodCell.agentName, methodCell.agentDesc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
                 mv.visitInsn(Opcodes.RETURN)
                 mv.visitMaxs(methodCell.paramsCount, methodCell.paramsCount)
                 mv.visitEnd()
@@ -118,8 +124,9 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         for (cell in methodCells) {
             transformHelper.sensorsAnalyticsHookConfig."${cell.agentName}"(classVisitor, cell)
         }
-
-        Logger.info("结束扫描类：${mClassName}\n")
+        if (Logger.debug) {
+            Logger.info("结束扫描类：${mClassName}\n")
+        }
     }
 
 
@@ -188,8 +195,29 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 super.visitEnd()
 
                 if (isHasTracked) {
+                    if (transformHelper.extension.lambdaEnabled && mLambdaMethodCells.containsKey(nameDesc)) {
+                        mLambdaMethodCells.remove(nameDesc)
+                    }
                     visitAnnotation("Lcom/sensorsdata/analytics/android/sdk/SensorsDataInstrumented;", false)
                     Logger.info("Hooked method: ${name}${desc}\n")
+                }
+            }
+
+            @Override
+            void visitInvokeDynamicInsn(String name1, String desc1, Handle bsm, Object... bsmArgs) {
+                super.visitInvokeDynamicInsn(name1, desc1, bsm, bsmArgs)
+                if (!transformHelper.extension.lambdaEnabled) {
+                    return
+                }
+                try {
+                    String desc2 = (String) bsmArgs[0]
+                    SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.LAMBDA_METHODS.get(Type.getReturnType(desc1).getDescriptor() + name1 + desc2)
+                    if (sensorsAnalyticsMethodCell != null) {
+                        Handle it = (Handle) bsmArgs[1]
+                        mLambdaMethodCells.put(it.name + it.desc, sensorsAnalyticsMethodCell)
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace()
                 }
             }
 
@@ -222,29 +250,37 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 /**
                  * 在 android.gradle 的 3.2.1 版本中，针对 view 的 setOnClickListener 方法 的 lambda 表达式做特殊处理。
                  */
-                if (transformHelper.extension.lambdaEnabled && SensorsAnalyticsUtil.isPrivate(access) && SensorsAnalyticsUtil.isSynthetic(access) && name.trim().startsWith('lambda$')) {
-                    if (desc == '(Landroid/view/MenuItem;)Z' && SensorsAnalyticsUtil.isStatic(access)) {
-                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sLambdaMethods.get(desc + '2')
-                        if (sensorsAnalyticsMethodCell != null) {
-                            visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI,
-                                    sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc,
-                                    sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
-                            isHasTracked = true
+                if (transformHelper.extension.lambdaEnabled) {
+                    SensorsAnalyticsMethodCell lambdaMethodCell = mLambdaMethodCells.get(nameDesc)
+                    if (lambdaMethodCell != null) {
+                        Type[] types = Type.getArgumentTypes(lambdaMethodCell.desc)
+                        int length = types.length
+                        Type[] lambdaTypes = Type.getArgumentTypes(desc)
+                        int paramStart = lambdaTypes.length - length
+                        if (paramStart < 0) {
                             return
-                        }
-                    } else {
-                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sLambdaMethods.get(desc)
-                        if (sensorsAnalyticsMethodCell != null) {
-                            int paramStart = sensorsAnalyticsMethodCell.paramsStart
-                            if (SensorsAnalyticsUtil.isStatic(access)) {
-                                paramStart = paramStart - 1
+                        } else {
+                            for (int i = 0; i < length; i++) {
+                                if (lambdaTypes[paramStart + i].descriptor != types[i].descriptor) {
+                                    return
+                                }
                             }
-                            visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI,
-                                    sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc,
-                                    paramStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
-                            isHasTracked = true
-                            return
                         }
+                        if (!SensorsAnalyticsUtil.isStatic(access)) {
+                            paramStart++
+                            if (lambdaMethodCell.desc == '(Landroid/view/MenuItem;)Z') {
+                                methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+                                methodVisitor.visitVarInsn(Opcodes.ALOAD, paramStart)
+                                methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, lambdaMethodCell.agentName, '(Ljava/lang/Object;Landroid/view/MenuItem;)V', false)
+                                isHasTracked = true
+                                return
+                            }
+                        }
+                        visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API,
+                                lambdaMethodCell.agentName, lambdaMethodCell.agentDesc,
+                                paramStart, lambdaMethodCell.paramsCount, lambdaMethodCell.opcodes)
+                        isHasTracked = true
+                        return
                     }
                 }
 
@@ -260,7 +296,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     methodVisitor.visitVarInsn(ILOAD, 1)
                     methodVisitor.visitVarInsn(ILOAD, 2)
                     methodVisitor.visitVarInsn(ILOAD, 3)
-                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackRN", "(Ljava/lang/Object;IIZ)V", false)
+                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackRN", "(Ljava/lang/Object;IIZ)V", false)
                     isHasTracked = true
                     return
                 }
@@ -273,10 +309,10 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                  * androidx/fragment/app/Fragment，androidx/fragment/app/ListFragment，androidx/fragment/app/DialogFragment
                  */
                 if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)) {
-                    SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sFragmentMethods.get(nameDesc)
+                    SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc)
                     if (sensorsAnalyticsMethodCell != null) {
                         visitedFragMethods.add(nameDesc)
-                        visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                        visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
                         isHasTracked = true
                     }
                 }
@@ -288,19 +324,19 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 if (SensorsAnalyticsUtil.isTargetMenuMethodDesc(nameDesc)) {
                     methodVisitor.visitVarInsn(ALOAD, 0)
                     methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackMenuItem", "(Ljava/lang/Object;Landroid/view/MenuItem;)V", false)
+                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackMenuItem", "(Ljava/lang/Object;Landroid/view/MenuItem;)V", false)
                     isHasTracked = true
                     return
                 }
 
                 if (nameDesc == 'onDrawerOpened(Landroid/view/View;)V') {
                     methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackDrawerOpened", "(Landroid/view/View;)V", false)
+                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackDrawerOpened", "(Landroid/view/View;)V", false)
                     isHasTracked = true
                     return
                 } else if (nameDesc == 'onDrawerClosed(Landroid/view/View;)V') {
                     methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackDrawerClosed", "(Landroid/view/View;)V", false)
+                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackDrawerClosed", "(Landroid/view/View;)V", false)
                     isHasTracked = true
                     return
                 }
@@ -319,7 +355,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     methodVisitor.visitVarInsn(ALOAD, 1)
                     methodVisitor.visitVarInsn(ALOAD, 2)
                     methodVisitor.visitVarInsn(ILOAD, 3)
-                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackListView", "(Landroid/widget/AdapterView;Landroid/view/View;I)V", false)
+                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackListView", "(Landroid/widget/AdapterView;Landroid/view/View;I)V", false)
                     isHasTracked = true
                     return
                 }
@@ -333,7 +369,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 if (eventName != null && eventName.length() != 0) {
                     methodVisitor.visitLdcInsn(eventName)
                     methodVisitor.visitLdcInsn(eventProperties)
-                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "track", "(Ljava/lang/String;Ljava/lang/String;)V", false)
+                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "track", "(Ljava/lang/String;Ljava/lang/String;)V", false)
                     isHasTracked = true
                     return
                 }
@@ -343,13 +379,13 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                         methodVisitor.visitVarInsn(ALOAD, variableID)
                         methodVisitor.visitVarInsn(ALOAD, 2)
                         methodVisitor.visitVarInsn(ILOAD, 3)
-                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackListView", "(Landroid/widget/AdapterView;Landroid/view/View;I)V", false)
+                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackListView", "(Landroid/widget/AdapterView;Landroid/view/View;I)V", false)
                         isHasTracked = true
                         return
                     } else {
-                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.sInterfaceMethods.get(nameDesc)
+                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS.get(nameDesc)
                         if (sensorsAnalyticsMethodCell != null && mInterfaces.contains(sensorsAnalyticsMethodCell.parent)) {
-                            visitMethodWithLoadedParams(methodVisitor, INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                            visitMethodWithLoadedParams(methodVisitor, INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
                             isHasTracked = true
                             return
                         }
@@ -364,11 +400,12 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
 
             void trackViewOnClick(MethodVisitor mv, int index) {
                 mv.visitVarInsn(ALOAD, index)
-                mv.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.sSensorsAnalyticsAPI, "trackViewOnClick", "(Landroid/view/View;)V", false)
+                mv.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackViewOnClick", "(Landroid/view/View;)V", false)
             }
 
             /**
              * 该方法是当扫描器扫描到类注解声明时进行调用
+             *
              * @param s 注解的类型。它使用的是（“L” + “类型路径” + “;”）形式表述
              * @param b 表示的是，该注解是否在 JVM 中可见
              * 1.RetentionPolicy.SOURCE：声明注解只保留在 Java 源程序中，在编译 Java 类时注解信息不会被写入到 Class。如果使用的是这个配置 ASM 也将无法探测到这个注解。

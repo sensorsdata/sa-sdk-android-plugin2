@@ -28,7 +28,7 @@ class SensorsAnalyticsSDKExtension {
 
     @Override
     String toString() {
-        return  "\t\tdisableIMEI=" + disableIMEI + "\n" +
+        return "\t\tdisableIMEI=" + disableIMEI + "\n" +
                 "\t\tdisableLog=" + disableLog + "\n" +
                 "\t\tdisableJsInterface=" + disableJsInterface + "\n" +
                 "\t\tdisableAndroidID=" + disableAndroidID + "\n" +

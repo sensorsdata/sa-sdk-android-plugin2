@@ -20,24 +20,20 @@ package com.sensorsdata.analytics.android.plugin
 class SensorsAnalyticsTransformHelper {
 
     SensorsAnalyticsExtension extension
-
     SensorsAnalyticsSDKHookConfig sensorsAnalyticsHookConfig
-
     boolean disableSensorsAnalyticsMultiThread
-
     boolean disableSensorsAnalyticsIncremental
-
-    HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx','com.qiyukf', 'android.arch']
+    HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx', 'com.qiyukf', 'android.arch']
     HashSet<String> include = ['butterknife.internal.DebouncingOnClickListener',
-                                              'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
-                                              'com.facebook.react.uimanager.NativeViewHierarchyManager']
+                               'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
+                               'com.facebook.react.uimanager.NativeViewHierarchyManager']
 
     SensorsAnalyticsTransformHelper(SensorsAnalyticsExtension extension) {
         this.extension = extension
     }
 
     void onTransform() {
-        println("sensorsAnalytics {\n"+extension+"\n}")
+        println("sensorsAnalytics {\n" + extension + "\n}")
         ArrayList<String> excludePackages = extension.exclude
         if (excludePackages != null) {
             exclude.addAll(excludePackages)
@@ -63,18 +59,15 @@ class SensorsAnalyticsTransformHelper {
     }
 
     ClassNameAnalytics analytics(String className) {
-
         ClassNameAnalytics classNameAnalytics = new ClassNameAnalytics(className)
-
         if (classNameAnalytics.isSDKFile()) {
             def cellHashMap = sensorsAnalyticsHookConfig.methodCells
             cellHashMap.each {
-                key,value->
-                    def methodCellList = value.get(className.replace('.','/'))
+                key, value ->
+                    def methodCellList = value.get(className.replace('.', '/'))
                     if (methodCellList != null) {
                         classNameAnalytics.methodCells.addAll(methodCellList)
                     }
-
             }
             if (classNameAnalytics.methodCells.size() > 0 || classNameAnalytics.isSensorsDataAPI) {
                 classNameAnalytics.isShouldModify = true

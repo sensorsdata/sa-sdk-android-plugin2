@@ -26,6 +26,7 @@ import com.android.build.api.transform.Status
 import com.android.build.api.transform.Transform
 import com.android.build.api.transform.TransformException
 import com.android.build.api.transform.TransformInput
+import com.android.build.api.transform.TransformInvocation
 import com.android.build.api.transform.TransformOutputProvider
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.android.ide.common.internal.WaitableExecutor
@@ -45,7 +46,7 @@ import java.util.zip.ZipEntry
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.0.5"
+    public static final String VERSION = "3.1.0"
     public static final String MIN_SDK_VERSION = "3.0.0"
     private WaitableExecutor waitableExecutor
 
@@ -76,28 +77,15 @@ class SensorsAnalyticsTransform extends Transform {
         return !transformHelper.disableSensorsAnalyticsIncremental
     }
 
-    /**
-     * 打印提示信息
-     */
-    private static void printCopyRight() {
-        println()
-        println("\033[40;32m" + "####################################################################" + "\033[0m")
-        println("\033[40;32m" + "########                                                    ########" + "\033[0m")
-        println("\033[40;32m" + "########                                                    ########" + "\033[0m")
-        println("\033[40;32m" + "########     欢迎使用 SensorsAnalytics® (v" + VERSION + ")编译插件    ########" + "\033[0m")
-        println("\033[40;32m" + "########          使用过程中碰到任何问题请联系我们          ########" + "\033[0m")
-        println("\033[40;32m" + "########                                                    ########" + "\033[0m")
-        println("\033[40;32m" + "########                                                    ########" + "\033[0m")
-        println("\033[40;32m" + "####################################################################" + "\033[0m")
-        println()
+    @Override
+    void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException {
+        transform2(transformInvocation.context, transformInvocation.inputs, transformInvocation.outputProvider, transformInvocation.incremental)
     }
 
-    @Override
-    void transform(Context context, Collection<TransformInput> inputs, Collection<TransformInput> referencedInputs, TransformOutputProvider outputProvider, boolean isIncremental) throws IOException, TransformException, InterruptedException {
-        /**
-         * 打印提示信息
-         */
-        printCopyRight()
+    private void transform2(Context context, Collection<TransformInput> inputs, TransformOutputProvider outputProvider, boolean isIncremental)
+            throws IOException, TransformException, InterruptedException {
+        //打印提示信息
+        Logger.printCopyright()
         transformHelper.onTransform()
         println("[SensorsAnalytics]: 是否开启多线程编译:${!transformHelper.disableSensorsAnalyticsMultiThread}")
         println("[SensorsAnalytics]: 是否开启增量编译:${!transformHelper.disableSensorsAnalyticsIncremental}")
@@ -106,13 +94,10 @@ class SensorsAnalyticsTransform extends Transform {
         if (!isIncremental) {
             outputProvider.deleteAll()
         }
-        /**
-         * 遍历输入文件
-         */
+
+        //遍历输入文件
         inputs.each { TransformInput input ->
-            /**
-             * 遍历 jar
-             */
+            //遍历 jar
             input.jarInputs.each { JarInput jarInput ->
                 if (waitableExecutor) {
                     waitableExecutor.execute(new Callable<Object>() {
@@ -127,9 +112,7 @@ class SensorsAnalyticsTransform extends Transform {
                 }
             }
 
-            /**
-             * 遍历目录
-             */
+            //遍历目录
             input.directoryInputs.each { DirectoryInput directoryInput ->
                 //Logger.info("||-->开始遍历特定目录  ${dest.absolutePath}")
                 File dir = directoryInput.file
@@ -173,7 +156,6 @@ class SensorsAnalyticsTransform extends Transform {
                             default:
                                 break
                         }
-
                     }
                 } else {
                     FileUtils.copyDirectory(dir, dest)
@@ -188,7 +170,7 @@ class SensorsAnalyticsTransform extends Transform {
                                     }
                                 })
                             } else {
-                                forEachDir(dir,inputFile,context,srcDirPath,destDirPath)
+                                forEachDir(dir, inputFile, context, srcDirPath, destDirPath)
                             }
                     }
                 }
@@ -202,7 +184,7 @@ class SensorsAnalyticsTransform extends Transform {
         println("[SensorsAnalytics]: 此次编译共耗时:${System.currentTimeMillis() - startTime}毫秒")
     }
 
-    void forEachDir(File dir , File inputFile, Context context ,String srcDirPath, String destDirPath) {
+    void forEachDir(File dir, File inputFile, Context context, String srcDirPath, String destDirPath) {
         File modified = modifyClassFile(dir, inputFile, context.getTemporaryDir())
         if (modified != null) {
             File target = new File(inputFile.absolutePath.replace(srcDirPath, destDirPath))
@@ -214,16 +196,14 @@ class SensorsAnalyticsTransform extends Transform {
         }
     }
 
-    void forEachJar(boolean isIncremental,JarInput jarInput,TransformOutputProvider outputProvider,Context context){
+    void forEachJar(boolean isIncremental, JarInput jarInput, TransformOutputProvider outputProvider, Context context) {
         String destName = jarInput.file.name
-        /**
-         * 截取文件路径的md5值重命名输出文件,因为可能同名,会覆盖
-         */
+        //截取文件路径的 md5 值重命名输出文件,因为可能同名,会覆盖
         def hexName = DigestUtils.md5Hex(jarInput.file.absolutePath).substring(0, 8)
         if (destName.endsWith(".jar")) {
             destName = destName.substring(0, destName.length() - 4)
         }
-        /** 获得输出文件*/
+        //获得输出文件
         File destFile = outputProvider.getContentLocation(destName + "_" + hexName, jarInput.contentTypes, jarInput.scopes, Format.JAR)
         if (isIncremental) {
             Status status = jarInput.getStatus()
@@ -233,7 +213,7 @@ class SensorsAnalyticsTransform extends Transform {
                 case Status.ADDED:
                 case Status.CHANGED:
                     Logger.info("jar status = $status:$destFile.absolutePath")
-                    transformJar(destFile,jarInput,context)
+                    transformJar(destFile, jarInput, context)
                     break
                 case Status.REMOVED:
                     Logger.info("jar status = $status:$destFile.absolutePath")
@@ -245,11 +225,11 @@ class SensorsAnalyticsTransform extends Transform {
                     break
             }
         } else {
-            transformJar(destFile,jarInput,context)
+            transformJar(destFile, jarInput, context)
         }
     }
 
-    void transformJar(File dest,JarInput jarInput,Context context) {
+    void transformJar(File dest, JarInput jarInput, Context context) {
         def modifiedJar = null
         if (!transformHelper.extension.disableJar || jarInput.file.absolutePath.contains('SensorsAnalyticsSDK')) {
             Logger.info("开始遍历 jar：" + jarInput.file.absolutePath)
@@ -273,20 +253,15 @@ class SensorsAnalyticsTransform extends Transform {
         return null
     }
 
-    private File modifyJar(File jarFile, File tempDir, boolean nameHex) {
-        /**
-         * 读取原 jar
-         */
+    private File modifyJar(File jarFile, File tempDir, boolean isNameHex) {
+        //取原 jar
         def file = new JarFile(jarFile)
-
-        /**
-         * 设置输出到的 jar
-         */
-        def hexName = ""
-        if (nameHex) {
-            hexName = DigestUtils.md5Hex(jarFile.absolutePath).substring(0, 8)
+        //设置输出到的 jar
+        def tmpNameHex = ""
+        if (isNameHex) {
+            tmpNameHex = DigestUtils.md5Hex(jarFile.absolutePath).substring(0, 8)
         }
-        def outputJar = new File(tempDir, hexName + jarFile.name)
+        def outputJar = new File(tempDir, tmpNameHex + jarFile.name)
         JarOutputStream jarOutputStream = new JarOutputStream(new FileOutputStream(outputJar))
         Enumeration enumeration = file.entries()
 
@@ -299,11 +274,8 @@ class SensorsAnalyticsTransform extends Transform {
                 //ignore
             } else {
                 String className
-
                 ZipEntry zipEntry = new ZipEntry(entryName)
-
                 jarOutputStream.putNextEntry(zipEntry)
-
                 byte[] modifiedClassBytes = null
                 byte[] sourceClassBytes = null
                 try {
@@ -315,7 +287,7 @@ class SensorsAnalyticsTransform extends Transform {
                     className = entryName.replace("/", ".").replace(".class", "")
                     ClassNameAnalytics classNameAnalytics = transformHelper.analytics(className)
                     if (classNameAnalytics.isShouldModify) {
-                        modifiedClassBytes = modifyClass(sourceClassBytes,classNameAnalytics)
+                        modifiedClassBytes = modifyClass(sourceClassBytes, classNameAnalytics)
                     }
                 }
                 if (modifiedClassBytes == null) {
@@ -341,8 +313,8 @@ class SensorsAnalyticsTransform extends Transform {
             ClassReader cr = new ClassReader(srcClass)
             cr.accept(classVisitor, ClassReader.EXPAND_FRAMES)
             return classWriter.toByteArray()
-        } catch(Exception ex) {
-            println("$classNameAnalytics.className 类执行 modifyClass 方法出现异常")
+        } catch (Exception ex) {
+            Logger.error("$classNameAnalytics.className 类执行 modifyClass 方法出现异常")
             ex.printStackTrace()
             if (transformHelper.extension.debug) {
                 throw new Error()
@@ -378,13 +350,7 @@ class SensorsAnalyticsTransform extends Transform {
         } catch (Exception e) {
             e.printStackTrace()
         } finally {
-            try {
-                if (outputStream != null) {
-                    outputStream.close()
-                }
-            } catch (Exception e) {
-                //ignore
-            }
+            IOUtils.closeQuietly(outputStream)
         }
         return modified
     }

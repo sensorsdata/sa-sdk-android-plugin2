@@ -21,8 +21,8 @@ import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.Attribute
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.commons.AdviceAdapter
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.commons.AdviceAdapter
 
 class SensorsAnalyticsDefaultMethodVisitor extends AdviceAdapter {
 
@@ -31,7 +31,9 @@ class SensorsAnalyticsDefaultMethodVisitor extends AdviceAdapter {
     SensorsAnalyticsDefaultMethodVisitor(MethodVisitor mv, int access, String name, String desc) {
         super(Opcodes.ASM5, mv, access, name, desc)
         methodName = name
-        Logger.info("开始扫描方法：${Logger.accCode2String(access)} ${methodName}${desc}")
+        if (Logger.debug) {
+            Logger.info("开始扫描方法：${Logger.accCode2String(access)} ${methodName}${desc}")
+        }
     }
 
     /**
@@ -57,7 +59,9 @@ class SensorsAnalyticsDefaultMethodVisitor extends AdviceAdapter {
      */
     @Override
     void visitEnd() {
-        Logger.info("结束扫描方法：${methodName}\n")
+        if (Logger.debug) {
+            Logger.info("结束扫描方法：${methodName}\n")
+        }
         super.visitEnd()
     }
 
@@ -78,6 +82,7 @@ class SensorsAnalyticsDefaultMethodVisitor extends AdviceAdapter {
 
     /**
      * 该方法是 visitEnd 之前调用的方法，可以反复调用。用以确定类方法在执行时候的堆栈大小。
+     *
      * @param maxStack
      * @param maxLocals
      */

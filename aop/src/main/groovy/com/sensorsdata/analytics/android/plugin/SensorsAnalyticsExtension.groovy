@@ -59,13 +59,13 @@ class SensorsAnalyticsExtension {
                 includeBuilder.append(",")
             }
         }
-        return  "\tdebug=" + debug + "\n" +
+        return "\tdebug=" + debug + "\n" +
                 "\tdisableJar=" + disableJar + "\n" +
                 "\tuseInclude=" + useInclude + "\n" +
                 "\tlambdaEnabled=" + lambdaEnabled + "\n" +
-                "\texclude=[" + excludeBuilder.toString() +"]"+ "\n" +
-                "\tinclude=[" + includeBuilder.toString() +"]"+ "\n" +
-                "\tsdk {\n" + sdk + "\n"+
+                "\texclude=[" + excludeBuilder.toString() + "]" + "\n" +
+                "\tinclude=[" + includeBuilder.toString() + "]" + "\n" +
+                "\tsdk {\n" + sdk + "\n" +
                 "\t}"
     }
 }

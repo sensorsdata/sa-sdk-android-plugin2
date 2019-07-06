@@ -1,4 +1,4 @@
-# sa-sdk-android-plugin
+# sa-sdk-android-plugin2
 
 The official Android SDK Plugin for Sensors Analytics
 
@@ -16,7 +16,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:2.2.3'
         //添加 android-gradle-plugin 依赖
-        classpath 'com.sensorsdata.analytics.android:android-gradle-plugin2:3.0.4'
+        classpath 'com.sensorsdata.analytics.android:android-gradle-plugin2:3.0.6'
     }
 }
 
@@ -27,7 +27,7 @@ allprojects {
 }
 ```
 
-（2）在 <font color=red size=4 > **主 module** </font>的 build.gradle 文件中添加 com.sensorsdata.analytics.android 插件、Sensors Analytics SDK 依赖及指定 weave 哪些 module：
+（2）在 <font color=red size=4 > **主 module** </font>的 build.gradle 文件中添加 com.sensorsdata.analytics.android 插件、Sensors Analytics SDK 依赖：
 
 ```android
 apply plugin: 'com.android.application'
@@ -37,7 +37,7 @@ apply plugin: 'com.sensorsdata.analytics.android'
 dependencies {
    compile 'com.android.support:appcompat-v7:25.1.1'
    //添加 Sensors Analytics SDK 依赖
-   compile 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK:3.1.0'
+   compile 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK:3.1.5'
 }
 ```
 
@@ -46,7 +46,7 @@ dependencies {
 See our [full manual](http://www.sensorsdata.cn/manual/android_sdk.html)
 
 或者加入 QQ 讨论群：<br>
-![ QQ 讨论群](https://github.com/sensorsdata/sa-sdk-android/raw/master/screenshots/qrCode.jpeg)
+![ QQ 讨论群](https://github.com/sensorsdata/sa-sdk-android/raw/master/docs/qrCode.jpeg)
 
 ## 感谢
 [hugo](https://github.com/JakeWharton/hugo)
@@ -59,9 +59,10 @@ See our [full manual](http://www.sensorsdata.cn/manual/android_sdk.html)
 
 
 ## 新书推荐
-神策数据出品的[《Android 全埋点解决方案》](https://u.jd.com/2JFaeG)发售啦！！！
 
-[![《Android 全埋点解决方案》](https://github.com/sensorsdata/sa-sdk-android/raw/master/screenshots/android_autotrack_book.png)](https://u.jd.com/2JFaeG)
+| 《数据驱动：从方法到实践》 | 《Android 全埋点解决方案》 |
+| ------ | ------ |
+| [![《数据驱动：从方法到实践》](https://github.com/sensorsdata/sa-sdk-android/raw/master/docs/data_driven_book.jpg)](https://u.jd.com/dWkE2x) | [![《Android 全埋点解决方案》](https://github.com/sensorsdata/sa-sdk-android/raw/master/docs/android_autotrack_book.jpg)](https://u.jd.com/2JFaeG) |
 
 
 ## License

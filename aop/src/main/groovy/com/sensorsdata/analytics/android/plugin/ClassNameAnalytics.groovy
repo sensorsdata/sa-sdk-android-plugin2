@@ -20,18 +20,13 @@ package com.sensorsdata.analytics.android.plugin
 class ClassNameAnalytics {
 
     public String className
-
     boolean isShouldModify = false
-
     boolean isSensorsDataAPI = false
-
     boolean isSensorsDataUtils = false
-
     boolean isSALog = false
-
     def methodCells = new ArrayList<SensorsAnalyticsMethodCell>()
 
-    ClassNameAnalytics (String className) {
+    ClassNameAnalytics(String className) {
         this.className = className
         isSensorsDataAPI = (className == 'com.sensorsdata.analytics.android.sdk.SensorsDataAPI')
         isSensorsDataUtils = (className == 'com.sensorsdata.analytics.android.sdk.util.SensorsDataUtils')

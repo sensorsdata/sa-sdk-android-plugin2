@@ -26,30 +26,27 @@ import org.gradle.invocation.DefaultGradle
 class SensorsAnalyticsPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
-        Instantiator ins = ((DefaultGradle) project.getGradle()).getServices().get(
-                Instantiator)
+        Instantiator ins = ((DefaultGradle) project.getGradle()).getServices().get(Instantiator)
         def args = [ins] as Object[]
-        SensorsAnalyticsExtension extension = project.extensions.create("sensorsAnalytics", SensorsAnalyticsExtension,args)
+        SensorsAnalyticsExtension extension = project.extensions.create("sensorsAnalytics", SensorsAnalyticsExtension, args)
 
         boolean disableSensorsAnalyticsPlugin = false
-        boolean disableSensorsAnalyticsPluginNew = false
-        boolean disableSensorsAnalyticsMultiThread = false
-        boolean disableSensorsAnalyticsIncremental = false
+        boolean disableSensorsAnalyticsMultiThreadBuild = false
+        boolean disableSensorsAnalyticsIncrementalBuild = false
         Properties properties = new Properties()
         if (project.rootProject.file('gradle.properties').exists()) {
             properties.load(project.rootProject.file('gradle.properties').newDataInputStream())
-            disableSensorsAnalyticsPlugin = Boolean.parseBoolean(properties.getProperty("disableSensorsAnalyticsPlugin", "false"))
-            disableSensorsAnalyticsPluginNew = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disablePlugin", "false"))
-            disableSensorsAnalyticsMultiThread = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disableMultiThread", "false"))
-            disableSensorsAnalyticsIncremental = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disableIncremental", "false"))
+            disableSensorsAnalyticsPlugin = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disablePlugin", "false")) ||
+                    Boolean.parseBoolean(properties.getProperty("disableSensorsAnalyticsPlugin", "false"))
+            disableSensorsAnalyticsMultiThreadBuild = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disableMultiThreadBuild", "false"))
+            disableSensorsAnalyticsIncrementalBuild = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disableIncrementalBuild", "false"))
         }
-        if (!disableSensorsAnalyticsPlugin && !disableSensorsAnalyticsPluginNew) {
+        if (!disableSensorsAnalyticsPlugin) {
             AppExtension appExtension = project.extensions.findByType(AppExtension.class)
             SensorsAnalyticsTransformHelper transformHelper = new SensorsAnalyticsTransformHelper(extension)
-            transformHelper.disableSensorsAnalyticsIncremental = disableSensorsAnalyticsIncremental
-            transformHelper.disableSensorsAnalyticsMultiThread = disableSensorsAnalyticsMultiThread
+            transformHelper.disableSensorsAnalyticsIncremental = disableSensorsAnalyticsIncrementalBuild
+            transformHelper.disableSensorsAnalyticsMultiThread = disableSensorsAnalyticsMultiThreadBuild
             appExtension.registerTransform(new SensorsAnalyticsTransform(transformHelper))
-
             project.afterEvaluate {
                 Logger.setDebug(extension.debug)
             }

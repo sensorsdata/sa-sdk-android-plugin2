@@ -35,7 +35,7 @@ dependencies {
     compile 'org.ow2.asm:asm-analysis:6.0'
     compile 'org.ow2.asm:asm-util:6.0'
     compile 'org.ow2.asm:asm-tree:6.0'
-    compileOnly 'com.android.tools.build:gradle:3.2.1', {
+    compileOnly 'com.android.tools.build:gradle:3.4.1', {
         exclude group:'org.ow2.asm'
     }
 }

@@ -17,7 +17,7 @@
 
 package com.sensorsdata.analytics.android.plugin
 
-import jdk.internal.org.objectweb.asm.Opcodes
+import org.objectweb.asm.Opcodes
 
 class SensorsAnalyticsUtil implements Opcodes {
     private static final HashSet<String> targetFragmentClass = new HashSet()
