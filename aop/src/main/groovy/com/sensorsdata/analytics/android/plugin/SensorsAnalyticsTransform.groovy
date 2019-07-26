@@ -46,7 +46,7 @@ import java.util.zip.ZipEntry
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.1.0"
+    public static final String VERSION = "3.1.1"
     public static final String MIN_SDK_VERSION = "3.0.0"
     private WaitableExecutor waitableExecutor
 
@@ -254,8 +254,8 @@ class SensorsAnalyticsTransform extends Transform {
     }
 
     private File modifyJar(File jarFile, File tempDir, boolean isNameHex) {
-        //取原 jar
-        def file = new JarFile(jarFile)
+        //取原 jar, verify 参数传 false, 代表对 jar 包不进行签名校验
+        def file = new JarFile(jarFile, false)
         //设置输出到的 jar
         def tmpNameHex = ""
         if (isNameHex) {
@@ -267,8 +267,13 @@ class SensorsAnalyticsTransform extends Transform {
 
         while (enumeration.hasMoreElements()) {
             JarEntry jarEntry = (JarEntry) enumeration.nextElement()
-            InputStream inputStream = file.getInputStream(jarEntry)
-
+            InputStream inputStream
+            try {
+                inputStream = file.getInputStream(jarEntry)
+            } catch (Exception e) {
+                e.printStackTrace()
+                return null
+            }
             String entryName = jarEntry.getName()
             if (entryName.endsWith(".DSA") || entryName.endsWith(".SF")) {
                 //ignore
