@@ -186,6 +186,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
             boolean isOnItemClickMethod = false
             //name + desc
             String nameDesc
+            boolean isSetUserVisibleHint = false
 
             //访问权限是public并且非静态
             boolean pubAndNoStaticAccess
@@ -236,6 +237,11 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     variableID = newLocal(Type.getObjectType("java/lang/Integer"))
                     methodVisitor.visitVarInsn(ALOAD, 1)
                     methodVisitor.visitVarInsn(ASTORE, variableID)
+                } else if (nameDesc == 'setUserVisibleHint(Z)V' && pubAndNoStaticAccess) {
+                    isSetUserVisibleHint = true
+                    variableID = newLocal(Type.getObjectType("java/lang/Integer"))
+                    methodVisitor.visitVarInsn(ILOAD, 1)
+                    methodVisitor.visitVarInsn(ISTORE, variableID)
                 }
             }
 
@@ -256,6 +262,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                         Type[] types = Type.getArgumentTypes(lambdaMethodCell.desc)
                         int length = types.length
                         Type[] lambdaTypes = Type.getArgumentTypes(desc)
+                        // paramStart 为访问的方法参数的下标，从 0 开始
                         int paramStart = lambdaTypes.length - length
                         if (paramStart < 0) {
                             return
@@ -266,19 +273,20 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                                 }
                             }
                         }
-                        if (!SensorsAnalyticsUtil.isStatic(access)) {
-                            paramStart++
+                        boolean isStaticMethod = SensorsAnalyticsUtil.isStatic(access)
+                        if (!isStaticMethod) {
                             if (lambdaMethodCell.desc == '(Landroid/view/MenuItem;)Z') {
                                 methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
-                                methodVisitor.visitVarInsn(Opcodes.ALOAD, paramStart)
+                                methodVisitor.visitVarInsn(Opcodes.ALOAD, getVisitPosition(lambdaTypes, paramStart, isStaticMethod))
                                 methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, lambdaMethodCell.agentName, '(Ljava/lang/Object;Landroid/view/MenuItem;)V', false)
                                 isHasTracked = true
                                 return
                             }
                         }
-                        visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API,
-                                lambdaMethodCell.agentName, lambdaMethodCell.agentDesc,
-                                paramStart, lambdaMethodCell.paramsCount, lambdaMethodCell.opcodes)
+                        for (int i = paramStart; i < paramStart + lambdaMethodCell.paramsCount; i++) {
+                            methodVisitor.visitVarInsn(lambdaMethodCell.opcodes.get(i - paramStart), getVisitPosition(lambdaTypes, i, isStaticMethod))
+                        }
+                        methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, lambdaMethodCell.agentName, lambdaMethodCell.agentDesc, false)
                         isHasTracked = true
                         return
                     }
@@ -312,7 +320,13 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc)
                     if (sensorsAnalyticsMethodCell != null) {
                         visitedFragMethods.add(nameDesc)
-                        visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                        if (isSetUserVisibleHint){
+                            methodVisitor.visitVarInsn(ALOAD, 0)
+                            methodVisitor.visitVarInsn(ILOAD, variableID)
+                            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
+                        } else {
+                            visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                        }
                         isHasTracked = true
                     }
                 }
@@ -447,4 +461,21 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         return sensorsAnalyticsDefaultMethodVisitor
     }
 
+    /**
+     * 获取方法参数下标为 index 的对应 ASM index
+     * @param types 方法参数类型数组
+     * @param index 方法中参数下标，从 0 开始
+     * @param isStaticMethod 该方法是否为静态方法
+     * @return 访问该方法的 index 位参数的 ASM index
+     */
+    int getVisitPosition(Type[] types, int index, boolean isStaticMethod) {
+        if (types == null || index < 0 || index >= types.length) {
+            throw new Error("getVisitPosition error")
+        }
+        if (index == 0) {
+            return isStaticMethod ? 0 : 1
+        } else {
+            return getVisitPosition(types, index - 1, isStaticMethod) + types[index - 1].getSize()
+        }
+    }
 }
