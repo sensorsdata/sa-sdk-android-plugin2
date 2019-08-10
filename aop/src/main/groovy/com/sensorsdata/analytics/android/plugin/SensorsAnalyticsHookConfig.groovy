@@ -64,6 +64,14 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/content/DialogInterface;I)V',
                 1, 2,
                 [Opcodes.ALOAD, Opcodes.ILOAD]))
+        INTERFACE_METHODS.put('onClick(Landroid/content/DialogInterface;IZ)V', new SensorsAnalyticsMethodCell(
+                'onClick',
+                '(Landroid/content/DialogInterface;IZ)V',
+                'android/content/DialogInterface$OnMultiChoiceClickListener',
+                'trackDialog',
+                '(Landroid/content/DialogInterface;I)V',
+                1, 2,
+                [Opcodes.ALOAD, Opcodes.ILOAD]))
         INTERFACE_METHODS.put('onItemSelected(Landroid/widget/AdapterView;Landroid/view/View;IJ)V', new SensorsAnalyticsMethodCell(
                 'onItemSelected',
                 '(Landroid/widget/AdapterView;Landroid/view/View;IJ)V',
@@ -223,6 +231,16 @@ class SensorsAnalyticsHookConfig {
                 1, 2,
                 [Opcodes.ALOAD, Opcodes.ILOAD])
         LAMBDA_METHODS.put(onClick1.parent + onClick1.name + onClick1.desc, onClick1)
+
+        SensorsAnalyticsMethodCell onClick2 = new SensorsAnalyticsMethodCell(
+                'onClick',
+                '(Landroid/content/DialogInterface;IZ)V',
+                'Landroid/content/DialogInterface$OnMultiChoiceClickListener;',
+                'trackDialog',
+                '(Landroid/content/DialogInterface;I)V',
+                1, 2,
+                [Opcodes.ALOAD, Opcodes.ILOAD])
+        LAMBDA_METHODS.put(onClick2.parent + onClick2.name + onClick2.desc, onClick2)
 
         SensorsAnalyticsMethodCell onItemClick = new SensorsAnalyticsMethodCell(
                 'onItemClick',

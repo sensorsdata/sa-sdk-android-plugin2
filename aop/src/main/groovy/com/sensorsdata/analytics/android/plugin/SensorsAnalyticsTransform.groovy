@@ -42,11 +42,10 @@ import java.util.concurrent.Callable
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
-import java.util.zip.ZipEntry
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.1.2"
+    public static final String VERSION = "3.1.3"
     public static final String MIN_SDK_VERSION = "3.0.0"
     private WaitableExecutor waitableExecutor
 
@@ -114,67 +113,17 @@ class SensorsAnalyticsTransform extends Transform {
 
             //遍历目录
             input.directoryInputs.each { DirectoryInput directoryInput ->
-                //Logger.info("||-->开始遍历特定目录  ${dest.absolutePath}")
-                File dir = directoryInput.file
-                File dest = outputProvider.getContentLocation(directoryInput.getName(),
-                        directoryInput.getContentTypes(), directoryInput.getScopes(),
-                        Format.DIRECTORY)
-                FileUtils.forceMkdir(dest)
-                String srcDirPath = dir.absolutePath
-                String destDirPath = dest.absolutePath
-                if (isIncremental) {
-                    Map<File, Status> fileStatusMap = directoryInput.getChangedFiles()
-                    for (Map.Entry<File, Status> changedFile : fileStatusMap.entrySet()) {
-                        Status status = changedFile.getValue()
-                        File inputFile = changedFile.getKey()
-                        String destFilePath = inputFile.absolutePath.replace(srcDirPath, destDirPath)
-                        File destFile = new File(destFilePath)
-                        switch (status) {
-                            case Status.NOTCHANGED:
-                                break
-                            case Status.REMOVED:
-                                Logger.info("目录 status = $status:$inputFile.absolutePath")
-                                if (destFile.exists()) {
-                                    //noinspection ResultOfMethodCallIgnored
-                                    destFile.delete()
-                                }
-                                break
-                            case Status.ADDED:
-                            case Status.CHANGED:
-                                Logger.info("目录 status = $status:$inputFile.absolutePath")
-                                File modified = modifyClassFile(dir, inputFile, context.getTemporaryDir())
-                                if (destFile.exists()) {
-                                    destFile.delete()
-                                }
-                                if (modified != null) {
-                                    FileUtils.copyFile(modified, destFile)
-                                    modified.delete()
-                                } else {
-                                    FileUtils.copyFile(inputFile, destFile)
-                                }
-                                break
-                            default:
-                                break
+                if (waitableExecutor) {
+                    waitableExecutor.execute(new Callable<Object>() {
+                        @Override
+                        Object call() throws Exception {
+                            forEachDirectory(isIncremental, directoryInput, outputProvider, context)
+                            return null
                         }
-                    }
+                    })
                 } else {
-                    FileUtils.copyDirectory(dir, dest)
-                    dir.traverse(type: FileType.FILES, nameFilter: ~/.*\.class/) {
-                        File inputFile ->
-                            if (waitableExecutor) {
-                                waitableExecutor.execute(new Callable<Object>() {
-                                    @Override
-                                    Object call() throws Exception {
-                                        forEachDir(dir, inputFile, context, srcDirPath, destDirPath)
-                                        return null
-                                    }
-                                })
-                            } else {
-                                forEachDir(dir, inputFile, context, srcDirPath, destDirPath)
-                            }
-                    }
+                    forEachDirectory(isIncremental, directoryInput, outputProvider, context)
                 }
-
             }
         }
         if (waitableExecutor) {
@@ -182,6 +131,58 @@ class SensorsAnalyticsTransform extends Transform {
         }
 
         println("[SensorsAnalytics]: 此次编译共耗时:${System.currentTimeMillis() - startTime}毫秒")
+    }
+
+    void forEachDirectory(boolean isIncremental, DirectoryInput directoryInput, TransformOutputProvider outputProvider, Context context){
+        File dir = directoryInput.file
+        File dest = outputProvider.getContentLocation(directoryInput.getName(),
+                directoryInput.getContentTypes(), directoryInput.getScopes(),
+                Format.DIRECTORY)
+        FileUtils.forceMkdir(dest)
+        String srcDirPath = dir.absolutePath
+        String destDirPath = dest.absolutePath
+        if (isIncremental) {
+            Map<File, Status> fileStatusMap = directoryInput.getChangedFiles()
+            for (Map.Entry<File, Status> changedFile : fileStatusMap.entrySet()) {
+                Status status = changedFile.getValue()
+                File inputFile = changedFile.getKey()
+                String destFilePath = inputFile.absolutePath.replace(srcDirPath, destDirPath)
+                File destFile = new File(destFilePath)
+                switch (status) {
+                    case Status.NOTCHANGED:
+                        break
+                    case Status.REMOVED:
+                        Logger.info("目录 status = $status:$inputFile.absolutePath")
+                        if (destFile.exists()) {
+                            //noinspection ResultOfMethodCallIgnored
+                            destFile.delete()
+                        }
+                        break
+                    case Status.ADDED:
+                    case Status.CHANGED:
+                        Logger.info("目录 status = $status:$inputFile.absolutePath")
+                        File modified = modifyClassFile(dir, inputFile, context.getTemporaryDir())
+                        if (destFile.exists()) {
+                            destFile.delete()
+                        }
+                        if (modified != null) {
+                            FileUtils.copyFile(modified, destFile)
+                            modified.delete()
+                        } else {
+                            FileUtils.copyFile(inputFile, destFile)
+                        }
+                        break
+                    default:
+                        break
+                }
+            }
+        } else {
+            FileUtils.copyDirectory(dir, dest)
+            dir.traverse(type: FileType.FILES, nameFilter: ~/.*\.class/) {
+                File inputFile ->
+                    forEachDir(dir, inputFile, context, srcDirPath, destDirPath)
+            }
+        }
     }
 
     void forEachDir(File dir, File inputFile, Context context, String srcDirPath, String destDirPath) {
@@ -197,14 +198,8 @@ class SensorsAnalyticsTransform extends Transform {
     }
 
     void forEachJar(boolean isIncremental, JarInput jarInput, TransformOutputProvider outputProvider, Context context) {
-        String destName = jarInput.file.name
-        //截取文件路径的 md5 值重命名输出文件,因为可能同名,会覆盖
-        def hexName = DigestUtils.md5Hex(jarInput.file.absolutePath).substring(0, 8)
-        if (destName.endsWith(".jar")) {
-            destName = destName.substring(0, destName.length() - 4)
-        }
         //获得输出文件
-        File destFile = outputProvider.getContentLocation(destName + "_" + hexName, jarInput.contentTypes, jarInput.scopes, Format.JAR)
+        File destFile = outputProvider.getContentLocation(jarInput.name, jarInput.contentTypes, jarInput.scopes, Format.JAR)
         if (isIncremental) {
             Status status = jarInput.getStatus()
             switch (status) {
@@ -279,13 +274,14 @@ class SensorsAnalyticsTransform extends Transform {
                 //ignore
             } else {
                 String className
-                ZipEntry zipEntry = new ZipEntry(entryName)
-                jarOutputStream.putNextEntry(zipEntry)
+                JarEntry entry = new JarEntry(entryName)
+                jarOutputStream.putNextEntry(entry)
                 byte[] modifiedClassBytes = null
-                byte[] sourceClassBytes = null
+                byte[] sourceClassBytes
                 try {
                     sourceClassBytes = IOUtils.toByteArray(inputStream)
                 } catch (Exception e) {
+                    e.printStackTrace()
                     return null
                 }
                 if (entryName.endsWith(".class")) {
