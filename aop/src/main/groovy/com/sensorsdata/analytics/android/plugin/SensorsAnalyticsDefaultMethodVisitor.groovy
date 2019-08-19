@@ -29,7 +29,7 @@ class SensorsAnalyticsDefaultMethodVisitor extends AdviceAdapter {
     String methodName
 
     SensorsAnalyticsDefaultMethodVisitor(MethodVisitor mv, int access, String name, String desc) {
-        super(Opcodes.ASM5, mv, access, name, desc)
+        super(Opcodes.ASM6, mv, access, name, desc)
         methodName = name
         if (Logger.debug) {
             Logger.info("开始扫描方法：${Logger.accCode2String(access)} ${methodName}${desc}")
