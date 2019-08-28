@@ -21,7 +21,6 @@ import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.Attribute
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
 import org.objectweb.asm.commons.AdviceAdapter
 
 class SensorsAnalyticsDefaultMethodVisitor extends AdviceAdapter {
@@ -29,7 +28,7 @@ class SensorsAnalyticsDefaultMethodVisitor extends AdviceAdapter {
     String methodName
 
     SensorsAnalyticsDefaultMethodVisitor(MethodVisitor mv, int access, String name, String desc) {
-        super(Opcodes.ASM6, mv, access, name, desc)
+        super(SensorsAnalyticsUtil.ASM_VERSION, mv, access, name, desc)
         methodName = name
         if (Logger.debug) {
             Logger.info("开始扫描方法：${Logger.accCode2String(access)} ${methodName}${desc}")

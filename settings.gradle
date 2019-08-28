@@ -1,1 +1,1 @@
-include ':aop'
+include ':plugin'

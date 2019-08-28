@@ -48,7 +48,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
     }
 
     SensorsAnalyticsClassVisitor(final ClassVisitor classVisitor, ClassNameAnalytics classNameAnalytics, SensorsAnalyticsTransformHelper transformHelper) {
-        super(Opcodes.ASM6, classVisitor)
+        super(SensorsAnalyticsUtil.ASM_VERSION, classVisitor)
         this.classVisitor = classVisitor
         this.classNameAnalytics = classNameAnalytics
         this.transformHelper = transformHelper
@@ -438,7 +438,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 } else if (s == 'Lcom/sensorsdata/analytics/android/sdk/SensorsDataInstrumented;') {
                     isHasInstrumented = true
                 } else if (s == 'Lcom/sensorsdata/analytics/android/sdk/SensorsDataTrackEvent;') {
-                    return new AnnotationVisitor(Opcodes.ASM6) {
+                    return new AnnotationVisitor(SensorsAnalyticsUtil.ASM_VERSION) {
                         @Override
                         void visit(String key, Object value) {
                             super.visit(key, value)
@@ -456,7 +456,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         }
         //如果java version 为1.5以前的版本，则使用JSRInlinerAdapter来删除JSR,RET指令
         if (version <= Opcodes.V1_5) {
-            return new SensorsAnalyticsJSRAdapter(Opcodes.ASM6, sensorsAnalyticsDefaultMethodVisitor, access, name, desc, signature, exceptions)
+            return new SensorsAnalyticsJSRAdapter(SensorsAnalyticsUtil.ASM_VERSION, sensorsAnalyticsDefaultMethodVisitor, access, name, desc, signature, exceptions)
         }
         return sensorsAnalyticsDefaultMethodVisitor
     }

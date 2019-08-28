@@ -19,7 +19,8 @@ package com.sensorsdata.analytics.android.plugin
 
 import org.objectweb.asm.Opcodes
 
-class SensorsAnalyticsUtil implements Opcodes {
+class SensorsAnalyticsUtil {
+    public static final ASM_VERSION = Opcodes.ASM6
     private static final HashSet<String> targetFragmentClass = new HashSet()
     private static final HashSet<String> targetMenuMethodDesc = new HashSet()
 
@@ -53,20 +54,12 @@ class SensorsAnalyticsUtil implements Opcodes {
         targetFragmentClass.add('androidx/fragment/app/DialogFragment')
     }
 
-    static boolean isSynthetic(int access) {
-        return (access & ACC_SYNTHETIC) != 0
-    }
-
-    static boolean isPrivate(int access) {
-        return (access & ACC_PRIVATE) != 0
-    }
-
     static boolean isPublic(int access) {
-        return (access & ACC_PUBLIC) != 0
+        return (access & Opcodes.ACC_PUBLIC) != 0
     }
 
     static boolean isStatic(int access) {
-        return (access & ACC_STATIC) != 0
+        return (access & Opcodes.ACC_STATIC) != 0
     }
 
     static boolean isTargetMenuMethodDesc(String nameDesc) {

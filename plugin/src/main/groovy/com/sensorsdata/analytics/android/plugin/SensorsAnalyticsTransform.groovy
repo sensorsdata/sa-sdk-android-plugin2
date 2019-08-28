@@ -45,7 +45,7 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.1.4"
+    public static final String VERSION = "3.1.5"
     public static final String MIN_SDK_VERSION = "3.0.0"
     private WaitableExecutor waitableExecutor
 
@@ -284,7 +284,7 @@ class SensorsAnalyticsTransform extends Transform {
                     e.printStackTrace()
                     return null
                 }
-                if (entryName.endsWith(".class")) {
+                if (!jarEntry.isDirectory() && entryName.endsWith(".class")) {
                     className = entryName.replace("/", ".").replace(".class", "")
                     ClassNameAnalytics classNameAnalytics = transformHelper.analytics(className)
                     if (classNameAnalytics.isShouldModify) {
@@ -312,7 +312,7 @@ class SensorsAnalyticsTransform extends Transform {
             ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS)
             ClassVisitor classVisitor = new SensorsAnalyticsClassVisitor(classWriter, classNameAnalytics, transformHelper)
             ClassReader cr = new ClassReader(srcClass)
-            cr.accept(classVisitor, ClassReader.EXPAND_FRAMES)
+            cr.accept(classVisitor, ClassReader.EXPAND_FRAMES + ClassReader.SKIP_FRAMES)
             return classWriter.toByteArray()
         } catch (Exception ex) {
             Logger.error("$classNameAnalytics.className 类执行 modifyClass 方法出现异常")
