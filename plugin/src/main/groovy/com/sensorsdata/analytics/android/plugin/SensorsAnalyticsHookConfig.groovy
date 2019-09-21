@@ -17,14 +17,14 @@
 
 package com.sensorsdata.analytics.android.plugin
 
-import jdk.internal.org.objectweb.asm.Opcodes
+import org.objectweb.asm.Opcodes
 
 class SensorsAnalyticsHookConfig {
     public static final String SENSORS_ANALYTICS_API = "com/sensorsdata/analytics/android/sdk/SensorsDataAutoTrackHelper"
     public final static HashMap<String, SensorsAnalyticsMethodCell> INTERFACE_METHODS = new HashMap<>()
 
     static {
-        INTERFACE_METHODS.put('onCheckedChanged(Landroid/widget/CompoundButton;Z)V', new SensorsAnalyticsMethodCell(
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
                 'onCheckedChanged',
                 '(Landroid/widget/CompoundButton;Z)V',
                 'android/widget/CompoundButton$OnCheckedChangeListener',
@@ -32,7 +32,7 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/view/View;)V',
                 1, 1,
                 [Opcodes.ALOAD]))
-        INTERFACE_METHODS.put('onRatingChanged(Landroid/widget/RatingBar;FZ)V', new SensorsAnalyticsMethodCell(
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
                 'onRatingChanged',
                 '(Landroid/widget/RatingBar;FZ)V',
                 'android/widget/RatingBar$OnRatingBarChangeListener',
@@ -40,7 +40,7 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/view/View;)V',
                 1, 1,
                 [Opcodes.ALOAD]))
-        INTERFACE_METHODS.put('onStopTrackingTouch(Landroid/widget/SeekBar;)V', new SensorsAnalyticsMethodCell(
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
                 'onStopTrackingTouch',
                 '(Landroid/widget/SeekBar;)V',
                 'android/widget/SeekBar$OnSeekBarChangeListener',
@@ -48,7 +48,7 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/view/View;)V',
                 1, 1,
                 [Opcodes.ALOAD]))
-        INTERFACE_METHODS.put('onCheckedChanged(Landroid/widget/RadioGroup;I)V', new SensorsAnalyticsMethodCell(
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
                 'onCheckedChanged',
                 '(Landroid/widget/RadioGroup;I)V',
                 'android/widget/RadioGroup$OnCheckedChangeListener',
@@ -56,7 +56,7 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/widget/RadioGroup;I)V',
                 1, 2,
                 [Opcodes.ALOAD, Opcodes.ILOAD]))
-        INTERFACE_METHODS.put('onClick(Landroid/content/DialogInterface;I)V', new SensorsAnalyticsMethodCell(
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
                 'onClick',
                 '(Landroid/content/DialogInterface;I)V',
                 'android/content/DialogInterface$OnClickListener',
@@ -64,15 +64,7 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/content/DialogInterface;I)V',
                 1, 2,
                 [Opcodes.ALOAD, Opcodes.ILOAD]))
-        INTERFACE_METHODS.put('onClick(Landroid/content/DialogInterface;IZ)V', new SensorsAnalyticsMethodCell(
-                'onClick',
-                '(Landroid/content/DialogInterface;IZ)V',
-                'android/content/DialogInterface$OnMultiChoiceClickListener',
-                'trackDialog',
-                '(Landroid/content/DialogInterface;I)V',
-                1, 2,
-                [Opcodes.ALOAD, Opcodes.ILOAD]))
-        INTERFACE_METHODS.put('onItemSelected(Landroid/widget/AdapterView;Landroid/view/View;IJ)V', new SensorsAnalyticsMethodCell(
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
                 'onItemSelected',
                 '(Landroid/widget/AdapterView;Landroid/view/View;IJ)V',
                 'android/widget/AdapterView$OnItemSelectedListener',
@@ -80,7 +72,7 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/widget/AdapterView;Landroid/view/View;I)V',
                 1, 3,
                 [Opcodes.ALOAD, Opcodes.ALOAD, Opcodes.ILOAD]))
-        INTERFACE_METHODS.put('onGroupClick(Landroid/widget/ExpandableListView;Landroid/view/View;IJ)Z', new SensorsAnalyticsMethodCell(
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
                 'onGroupClick',
                 '(Landroid/widget/ExpandableListView;Landroid/view/View;IJ)Z',
                 'android/widget/ExpandableListView$OnGroupClickListener',
@@ -88,7 +80,7 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/widget/ExpandableListView;Landroid/view/View;I)V',
                 1, 3,
                 [Opcodes.ALOAD, Opcodes.ALOAD, Opcodes.ILOAD]))
-        INTERFACE_METHODS.put('onChildClick(Landroid/widget/ExpandableListView;Landroid/view/View;IIJ)Z', new SensorsAnalyticsMethodCell(
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
                 'onChildClick',
                 '(Landroid/widget/ExpandableListView;Landroid/view/View;IIJ)Z',
                 'android/widget/ExpandableListView$OnChildClickListener',
@@ -96,7 +88,7 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/widget/ExpandableListView;Landroid/view/View;II)V',
                 1, 4,
                 [Opcodes.ALOAD, Opcodes.ALOAD, Opcodes.ILOAD, Opcodes.ILOAD]))
-        INTERFACE_METHODS.put('onTabChanged(Ljava/lang/String;)V', new SensorsAnalyticsMethodCell(
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
                 'onTabChanged',
                 '(Ljava/lang/String;)V',
                 'android/widget/TabHost$OnTabChangeListener',
@@ -104,8 +96,7 @@ class SensorsAnalyticsHookConfig {
                 '(Ljava/lang/String;)V',
                 1, 1,
                 [Opcodes.ALOAD]))
-
-        INTERFACE_METHODS.put('onTabSelected(Landroid/support/design/widget/TabLayout$Tab;)V', new SensorsAnalyticsMethodCell(
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
                 'onTabSelected',
                 '(Landroid/support/design/widget/TabLayout$Tab;)V',
                 'android/support/design/widget/TabLayout$OnTabSelectedListener',
@@ -113,8 +104,7 @@ class SensorsAnalyticsHookConfig {
                 '(Ljava/lang/Object;Ljava/lang/Object;)V',
                 0, 2,
                 [Opcodes.ALOAD, Opcodes.ALOAD]))
-
-        INTERFACE_METHODS.put('onTabSelected(Lcom/google/android/material/tabs/TabLayout$Tab;)V', new SensorsAnalyticsMethodCell(
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
                 'onTabSelected',
                 '(Lcom/google/android/material/tabs/TabLayout$Tab;)V',
                 'com/google/android/material/tabs/TabLayout$OnTabSelectedListener',
@@ -122,8 +112,45 @@ class SensorsAnalyticsHookConfig {
                 '(Ljava/lang/Object;Ljava/lang/Object;)V',
                 0, 2,
                 [Opcodes.ALOAD, Opcodes.ALOAD]))
-
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
+                'onMenuItemClick',
+                '(Landroid/view/MenuItem;)Z',
+                'android/widget/Toolbar$OnMenuItemClickListener',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
+                'onMenuItemClick',
+                '(Landroid/view/MenuItem;)Z',
+                'android/support/v7/widget/Toolbar$OnMenuItemClickListener',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
+                'onMenuItemClick',
+                '(Landroid/view/MenuItem;)Z',
+                'androidx/appcompat/widget/Toolbar$OnMenuItemClickListener',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
+                'onClick',
+                '(Landroid/content/DialogInterface;IZ)V',
+                'android/content/DialogInterface$OnMultiChoiceClickListener',
+                'trackDialog',
+                '(Landroid/content/DialogInterface;I)V',
+                1, 2,
+                [Opcodes.ALOAD, Opcodes.ILOAD]))
         // Todo: 扩展
+    }
+
+    static void addInterfaceMethod(SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell) {
+        if (sensorsAnalyticsMethodCell != null) {
+            INTERFACE_METHODS.put(sensorsAnalyticsMethodCell.parent + sensorsAnalyticsMethodCell.name + sensorsAnalyticsMethodCell.desc, sensorsAnalyticsMethodCell)
+        }
     }
 
     /**
@@ -172,126 +199,133 @@ class SensorsAnalyticsHookConfig {
 
     public final static HashMap<String, SensorsAnalyticsMethodCell> LAMBDA_METHODS = new HashMap<>()
     static {
-        SensorsAnalyticsMethodCell onClick = new SensorsAnalyticsMethodCell(
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onClick',
                 '(Landroid/view/View;)V',
                 'Landroid/view/View$OnClickListener;',
                 'trackViewOnClick',
                 '(Landroid/view/View;)V',
                 1, 1,
-                [Opcodes.ALOAD])
-        LAMBDA_METHODS.put(onClick.parent + onClick.name + onClick.desc, onClick)
-        SensorsAnalyticsMethodCell onCheckedChanged = new SensorsAnalyticsMethodCell(
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onCheckedChanged',
                 '(Landroid/widget/CompoundButton;Z)V',
                 'Landroid/widget/CompoundButton$OnCheckedChangeListener;',
                 'trackViewOnClick',
                 '(Landroid/view/View;)V',
                 1, 1,
-                [Opcodes.ALOAD])
-        LAMBDA_METHODS.put(onCheckedChanged.parent + onCheckedChanged.name + onCheckedChanged.desc, onCheckedChanged)
-
-        SensorsAnalyticsMethodCell onRatingChanged = new SensorsAnalyticsMethodCell(
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onRatingChanged',
                 '(Landroid/widget/RatingBar;FZ)V',
                 'Landroid/widget/RatingBar$OnRatingBarChangeListener;',
                 'trackViewOnClick',
                 '(Landroid/view/View;)V',
                 1, 1,
-                [Opcodes.ALOAD])
-        LAMBDA_METHODS.put(onRatingChanged.parent + onRatingChanged.name + onRatingChanged.desc, onRatingChanged)
-
-
-        SensorsAnalyticsMethodCell onStopTrackingTouch = new SensorsAnalyticsMethodCell(
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onStopTrackingTouch',
                 '(Landroid/widget/SeekBar;)V',
                 'Landroid/widget/SeekBar$OnSeekBarChangeListener;',
                 'trackViewOnClick',
                 '(Landroid/view/View;)V',
                 1, 1,
-                [Opcodes.ALOAD])
-        LAMBDA_METHODS.put(onStopTrackingTouch.parent + onStopTrackingTouch.name + onStopTrackingTouch.desc, onStopTrackingTouch)
-
-        SensorsAnalyticsMethodCell onCheckedChanged1 = new SensorsAnalyticsMethodCell(
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onCheckedChanged',
                 '(Landroid/widget/RadioGroup;I)V',
                 'Landroid/widget/RadioGroup$OnCheckedChangeListener;',
                 'trackRadioGroup',
                 '(Landroid/widget/RadioGroup;I)V',
                 1, 2,
-                [Opcodes.ALOAD, Opcodes.ILOAD])
-        LAMBDA_METHODS.put(onCheckedChanged1.parent + onCheckedChanged1.name + onCheckedChanged1.desc, onCheckedChanged1)
-
-        SensorsAnalyticsMethodCell onClick1 = new SensorsAnalyticsMethodCell(
+                [Opcodes.ALOAD, Opcodes.ILOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onClick',
                 '(Landroid/content/DialogInterface;I)V',
                 'Landroid/content/DialogInterface$OnClickListener;',
                 'trackDialog',
                 '(Landroid/content/DialogInterface;I)V',
                 1, 2,
-                [Opcodes.ALOAD, Opcodes.ILOAD])
-        LAMBDA_METHODS.put(onClick1.parent + onClick1.name + onClick1.desc, onClick1)
-
-        SensorsAnalyticsMethodCell onClick2 = new SensorsAnalyticsMethodCell(
-                'onClick',
-                '(Landroid/content/DialogInterface;IZ)V',
-                'Landroid/content/DialogInterface$OnMultiChoiceClickListener;',
-                'trackDialog',
-                '(Landroid/content/DialogInterface;I)V',
-                1, 2,
-                [Opcodes.ALOAD, Opcodes.ILOAD])
-        LAMBDA_METHODS.put(onClick2.parent + onClick2.name + onClick2.desc, onClick2)
-
-        SensorsAnalyticsMethodCell onItemClick = new SensorsAnalyticsMethodCell(
+                [Opcodes.ALOAD, Opcodes.ILOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onItemClick',
                 '(Landroid/widget/AdapterView;Landroid/view/View;IJ)V',
                 'Landroid/widget/AdapterView$OnItemClickListener;',
                 'trackListView',
                 '(Landroid/widget/AdapterView;Landroid/view/View;I)V',
                 1, 3,
-                [Opcodes.ALOAD, Opcodes.ALOAD, Opcodes.ILOAD])
-        LAMBDA_METHODS.put(onItemClick.parent + onItemClick.name + onItemClick.desc, onItemClick)
-
-        SensorsAnalyticsMethodCell onGroupClick = new SensorsAnalyticsMethodCell(
+                [Opcodes.ALOAD, Opcodes.ALOAD, Opcodes.ILOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onGroupClick',
                 '(Landroid/widget/ExpandableListView;Landroid/view/View;IJ)Z',
                 'Landroid/widget/ExpandableListView$OnGroupClickListener;',
                 'trackExpandableListViewOnGroupClick',
                 '(Landroid/widget/ExpandableListView;Landroid/view/View;I)V',
                 1, 3,
-                [Opcodes.ALOAD, Opcodes.ALOAD, Opcodes.ILOAD])
-        LAMBDA_METHODS.put(onGroupClick.parent + onGroupClick.name + onGroupClick.desc, onGroupClick)
-
-        SensorsAnalyticsMethodCell onChildClick = new SensorsAnalyticsMethodCell(
+                [Opcodes.ALOAD, Opcodes.ALOAD, Opcodes.ILOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onChildClick',
                 '(Landroid/widget/ExpandableListView;Landroid/view/View;IIJ)Z',
                 'Landroid/widget/ExpandableListView$OnChildClickListener;',
                 'trackExpandableListViewOnChildClick',
                 '(Landroid/widget/ExpandableListView;Landroid/view/View;II)V',
                 1, 4,
-                [Opcodes.ALOAD, Opcodes.ALOAD, Opcodes.ILOAD, Opcodes.ILOAD])
-        LAMBDA_METHODS.put(onChildClick.parent + onChildClick.name + onChildClick.desc, onChildClick)
-
-        SensorsAnalyticsMethodCell onTabChanged = new SensorsAnalyticsMethodCell(
+                [Opcodes.ALOAD, Opcodes.ALOAD, Opcodes.ILOAD, Opcodes.ILOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onTabChanged',
                 '(Ljava/lang/String;)V',
                 'Landroid/widget/TabHost$OnTabChangeListener;',
                 'trackTabHost',
                 '(Ljava/lang/String;)V',
                 1, 1,
-                [Opcodes.ALOAD])
-        LAMBDA_METHODS.put(onTabChanged.parent + onTabChanged.name + onTabChanged.desc, onTabChanged)
-
-        SensorsAnalyticsMethodCell onNavigationItemSelected = new SensorsAnalyticsMethodCell(
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onNavigationItemSelected',
                 '(Landroid/view/MenuItem;)Z',
                 'Landroid/support/design/widget/NavigationView$OnNavigationItemSelectedListener;',
                 'trackMenuItem',
                 '(Landroid/view/MenuItem;)V',
                 1, 1,
-                [Opcodes.ALOAD])
-        LAMBDA_METHODS.put(onNavigationItemSelected.parent + onNavigationItemSelected.name + onNavigationItemSelected.desc, onNavigationItemSelected)
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
+                'onMenuItemClick',
+                '(Landroid/view/MenuItem;)Z',
+                'Landroid/widget/Toolbar$OnMenuItemClickListener;',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
+                'onMenuItemClick',
+                '(Landroid/view/MenuItem;)Z',
+                'Landroid/support/v7/widget/Toolbar$OnMenuItemClickListener;',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
+                'onMenuItemClick',
+                '(Landroid/view/MenuItem;)Z',
+                'Landroidx/appcompat/widget/Toolbar$OnMenuItemClickListener;',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
+                'onClick',
+                '(Landroid/content/DialogInterface;IZ)V',
+                'Landroid/content/DialogInterface$OnMultiChoiceClickListener;',
+                'trackDialog',
+                '(Landroid/content/DialogInterface;I)V',
+                1, 2,
+                [Opcodes.ALOAD, Opcodes.ILOAD]))
 
         // Todo: 扩展
+    }
+
+    static void addLambdaMethod(SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell) {
+        if (sensorsAnalyticsMethodCell != null) {
+            LAMBDA_METHODS.put(sensorsAnalyticsMethodCell.parent + sensorsAnalyticsMethodCell.name + sensorsAnalyticsMethodCell.desc, sensorsAnalyticsMethodCell)
+        }
     }
 }

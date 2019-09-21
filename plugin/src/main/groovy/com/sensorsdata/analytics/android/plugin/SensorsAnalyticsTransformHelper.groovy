@@ -23,10 +23,15 @@ class SensorsAnalyticsTransformHelper {
     SensorsAnalyticsSDKHookConfig sensorsAnalyticsHookConfig
     boolean disableSensorsAnalyticsMultiThread
     boolean disableSensorsAnalyticsIncremental
-    HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx', 'com.qiyukf', 'android.arch']
+    HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx', 'com.qiyukf', 'android.arch', 'com.google.android']
     HashSet<String> include = ['butterknife.internal.DebouncingOnClickListener',
                                'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
                                'com.facebook.react.uimanager.NativeViewHierarchyManager']
+    /** 将一些特例需要排除在外 */
+    public static final HashSet<String> special = ['android.support.design.widget.TabLayout$ViewPagerOnTabSelectedListener',
+                                                   'com.google.android.material.tabs.TabLayout$ViewPagerOnTabSelectedListener',
+                                                   'android.support.v7.app.ActionBarDrawerToggle',
+                                                   'androidx.appcompat.app.ActionBarDrawerToggle']
 
     SensorsAnalyticsTransformHelper(SensorsAnalyticsExtension extension) {
         this.extension = extension
@@ -73,6 +78,12 @@ class SensorsAnalyticsTransformHelper {
                 classNameAnalytics.isShouldModify = true
             }
         } else if (!classNameAnalytics.isAndroidGenerated()) {
+            for (pkgName in special) {
+                if (className.startsWith(pkgName)) {
+                    classNameAnalytics.isShouldModify = true
+                    return classNameAnalytics
+                }
+            }
             if (extension.useInclude) {
                 for (pkgName in include) {
                     if (className.startsWith(pkgName)) {

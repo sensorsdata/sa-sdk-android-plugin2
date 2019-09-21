@@ -23,6 +23,7 @@ class SensorsAnalyticsUtil {
     public static final ASM_VERSION = Opcodes.ASM6
     private static final HashSet<String> targetFragmentClass = new HashSet()
     private static final HashSet<String> targetMenuMethodDesc = new HashSet()
+    private static final HashSet<String> specialClass = new HashSet()
 
     static {
         /**
@@ -52,6 +53,11 @@ class SensorsAnalyticsUtil {
         targetFragmentClass.add('androidx/fragment/app/Fragment')
         targetFragmentClass.add('androidx/fragment/app/ListFragment')
         targetFragmentClass.add('androidx/fragment/app/DialogFragment')
+
+        for (className in SensorsAnalyticsTransformHelper.special) {
+            specialClass.add(className.replace('.', '/'))
+        }
+
     }
 
     static boolean isPublic(int access) {
@@ -68,5 +74,9 @@ class SensorsAnalyticsUtil {
 
     static boolean isInstanceOfFragment(String superName) {
         return targetFragmentClass.contains(superName)
+    }
+
+    static boolean isTargetClassInSpecial(String className) {
+        return specialClass.contains(className)
     }
 }

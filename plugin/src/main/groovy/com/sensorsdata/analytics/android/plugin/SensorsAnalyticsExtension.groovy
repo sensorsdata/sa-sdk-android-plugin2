@@ -22,15 +22,15 @@ import org.gradle.internal.reflect.Instantiator
 
 
 class SensorsAnalyticsExtension {
-    boolean debug = false
-    boolean disableJar = false
-    boolean useInclude = false
-    boolean lambdaEnabled = true
+    public boolean debug = false
+    public boolean disableJar = false
+    public boolean useInclude = false
+    public boolean lambdaEnabled = true
 
-    ArrayList<String> exclude = []
-    ArrayList<String> include = []
+    public ArrayList<String> exclude = []
+    public ArrayList<String> include = []
 
-    SensorsAnalyticsSDKExtension sdk
+    public SensorsAnalyticsSDKExtension sdk
 
     SensorsAnalyticsExtension(Instantiator ins) {
         sdk = ins.newInstance(SensorsAnalyticsSDKExtension)

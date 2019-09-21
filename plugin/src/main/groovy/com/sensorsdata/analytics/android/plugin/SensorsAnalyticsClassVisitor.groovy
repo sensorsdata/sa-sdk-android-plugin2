@@ -320,7 +320,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc)
                     if (sensorsAnalyticsMethodCell != null) {
                         visitedFragMethods.add(nameDesc)
-                        if (isSetUserVisibleHint){
+                        if (isSetUserVisibleHint) {
                             methodVisitor.visitVarInsn(ALOAD, 0)
                             methodVisitor.visitVarInsn(ILOAD, variableID)
                             methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
@@ -361,8 +361,10 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     return
                 }
 
-                if ((mClassName.startsWith('android/') || mClassName.startsWith('androidx/')) && !(mClassName.startsWith("android/support/v17/leanback") || mClassName.startsWith("androidx/leanback"))) {
-                    return
+                if (!SensorsAnalyticsUtil.isTargetClassInSpecial(mClassName)) {
+                    if ((mClassName.startsWith('android/') || mClassName.startsWith('androidx/')) && !(mClassName.startsWith("android/support/v17/leanback") || mClassName.startsWith("androidx/leanback"))) {
+                        return
+                    }
                 }
 
                 if (nameDesc == 'onItemSelected(Landroid/widget/AdapterView;Landroid/view/View;IJ)V' || nameDesc == "onListItemClick(Landroid/widget/ListView;Landroid/view/View;IJ)V") {
@@ -397,11 +399,13 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                         isHasTracked = true
                         return
                     } else {
-                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS.get(nameDesc)
-                        if (sensorsAnalyticsMethodCell != null && mInterfaces.contains(sensorsAnalyticsMethodCell.parent)) {
-                            visitMethodWithLoadedParams(methodVisitor, INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
-                            isHasTracked = true
-                            return
+                        for (interfaceName in mInterfaces) {
+                            SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS.get(interfaceName + nameDesc)
+                            if (sensorsAnalyticsMethodCell != null) {
+                                visitMethodWithLoadedParams(methodVisitor, INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                                isHasTracked = true
+                                return
+                            }
                         }
                     }
                 }
