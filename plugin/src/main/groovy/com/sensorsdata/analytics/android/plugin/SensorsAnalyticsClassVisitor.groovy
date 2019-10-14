@@ -190,6 +190,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
 
             //访问权限是public并且非静态
             boolean pubAndNoStaticAccess
+            ArrayList<Integer> localIds
 
             @Override
             void visitEnd() {
@@ -242,6 +243,16 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     variableID = newLocal(Type.getObjectType("java/lang/Integer"))
                     methodVisitor.visitVarInsn(ILOAD, 1)
                     methodVisitor.visitVarInsn(ISTORE, variableID)
+                } else if (nameDesc == 'onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V' && pubAndNoStaticAccess) {
+                    localIds = new ArrayList<>()
+                    int localId = newLocal(Type.getObjectType("java/lang/Integer"))
+                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitVarInsn(ASTORE, localId)
+                    localIds.add(localId)
+                    localId = newLocal(Type.getObjectType("java/lang/Integer"))
+                    methodVisitor.visitVarInsn(ALOAD, 2)
+                    methodVisitor.visitVarInsn(ASTORE, localId)
+                    localIds.add(localId)
                 }
             }
 
@@ -324,10 +335,17 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                             methodVisitor.visitVarInsn(ALOAD, 0)
                             methodVisitor.visitVarInsn(ILOAD, variableID)
                             methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
+                        } else if (localIds != null){
+                            methodVisitor.visitVarInsn(ALOAD, 0)
+                            for (localId in localIds) {
+                                methodVisitor.visitVarInsn(ALOAD, localId)
+                            }
+                            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
                         } else {
                             visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
                         }
                         isHasTracked = true
+                        return
                     }
                 }
 
