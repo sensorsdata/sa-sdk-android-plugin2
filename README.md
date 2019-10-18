@@ -85,5 +85,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.gradle_plugin_android_aspectjx
-
-**禁止一切基于神策数据开源 SDK 的商业活动！**
