@@ -19,12 +19,12 @@ package com.sensorsdata.analytics.android.plugin
 
 class SensorsAnalyticsSDKExtension {
     // 同SensorsAnalyticsSDKHookConfig中方法对应, disableIMEI,disableLog,disableJsInterface，disableAndroidID
-    public boolean disableIMEI = false
-    public boolean disableLog = false
-    public boolean disableJsInterface = false
-    public boolean disableAndroidID = false
-    public boolean disableMacAddress = false
-    public boolean disableCarrier = false
+    boolean disableIMEI = false
+    boolean disableLog = false
+    boolean disableJsInterface = false
+    boolean disableAndroidID = false
+    boolean disableMacAddress = false
+    boolean disableCarrier = false
 
     @Override
     String toString() {
