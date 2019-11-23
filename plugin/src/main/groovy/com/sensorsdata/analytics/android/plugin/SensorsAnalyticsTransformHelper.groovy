@@ -23,6 +23,7 @@ class SensorsAnalyticsTransformHelper {
     SensorsAnalyticsSDKHookConfig sensorsAnalyticsHookConfig
     boolean disableSensorsAnalyticsMultiThread
     boolean disableSensorsAnalyticsIncremental
+    boolean isHookOnMethodEnter
     HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx', 'com.qiyukf', 'android.arch', 'com.google.android']
     HashSet<String> include = ['butterknife.internal.DebouncingOnClickListener',
                                'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',

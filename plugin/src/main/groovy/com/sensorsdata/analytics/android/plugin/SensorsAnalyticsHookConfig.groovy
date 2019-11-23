@@ -144,7 +144,30 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/content/DialogInterface;I)V',
                 1, 2,
                 [Opcodes.ALOAD, Opcodes.ILOAD]))
-        // Todo: 扩展
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
+                'onMenuItemClick',
+                '(Landroid/view/MenuItem;)Z',
+                'android/widget/PopupMenu$OnMenuItemClickListener',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
+                'onMenuItemClick',
+                '(Landroid/view/MenuItem;)Z',
+                'androidx/appcompat/widget/PopupMenu$OnMenuItemClickListener',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
+                'onMenuItemClick',
+                '(Landroid/view/MenuItem;)Z',
+                'android/support/v7/widget/PopupMenu$OnMenuItemClickListener',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
     }
 
     static void addInterfaceMethod(SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell) {
@@ -319,6 +342,30 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/content/DialogInterface;I)V',
                 1, 2,
                 [Opcodes.ALOAD, Opcodes.ILOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
+                'onMenuItemClick',
+                '(Landroid/view/MenuItem;)Z',
+                'Landroid/widget/PopupMenu$OnMenuItemClickListener;',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
+                'onMenuItemClick',
+                '(Landroid/view/MenuItem;)Z',
+                'Landroidx/appcompat/widget/PopupMenu$OnMenuItemClickListener;',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
+                'onMenuItemClick',
+                '(Landroid/view/MenuItem;)Z',
+                'Landroid/support/v7/widget/PopupMenu$OnMenuItemClickListener;',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
 
         // Todo: 扩展
     }

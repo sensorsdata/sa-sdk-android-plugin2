@@ -254,13 +254,54 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     methodVisitor.visitVarInsn(ASTORE, localId)
                     localIds.add(localId)
                 }
+                if (transformHelper.isHookOnMethodEnter) {
+                    handleCode()
+                }
             }
 
             @Override
             protected void onMethodExit(int opcode) {
                 super.onMethodExit(opcode)
+                if (!transformHelper.isHookOnMethodEnter) {
+                    handleCode()
+                }
+            }
 
-                if (isSensorsDataIgnoreTrackOnClick || isHasInstrumented || classNameAnalytics.isSensorsDataAPI) {
+            void handleCode(){
+                if (isHasInstrumented || classNameAnalytics.isSensorsDataAPI) {
+                    return
+                }
+
+                /**
+                 * Fragment
+                 * 目前支持以下 Fragment 页面浏览事件：
+                 * android/app/Fragment，android/app/ListFragment， android/app/DialogFragment，
+                 * android/support/v4/app/Fragment，android/support/v4/app/ListFragment，android/support/v4/app/DialogFragment，
+                 * androidx/fragment/app/Fragment，androidx/fragment/app/ListFragment，androidx/fragment/app/DialogFragment
+                 */
+                if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)) {
+                    SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc)
+                    if (sensorsAnalyticsMethodCell != null) {
+                        visitedFragMethods.add(nameDesc)
+                        if (isSetUserVisibleHint) {
+                            methodVisitor.visitVarInsn(ALOAD, 0)
+                            methodVisitor.visitVarInsn(ILOAD, variableID)
+                            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
+                        } else if (localIds != null){
+                            methodVisitor.visitVarInsn(ALOAD, 0)
+                            for (localId in localIds) {
+                                methodVisitor.visitVarInsn(ALOAD, localId)
+                            }
+                            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
+                        } else {
+                            visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                        }
+                        isHasTracked = true
+                        return
+                    }
+                }
+
+                if (isSensorsDataIgnoreTrackOnClick) {
                     return
                 }
 
@@ -320,34 +361,6 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     return
                 }
 
-                /**
-                 * Fragment
-                 * 目前支持以下 Fragment 页面浏览事件：
-                 * android/app/Fragment，android/app/ListFragment， android/app/DialogFragment，
-                 * android/support/v4/app/Fragment，android/support/v4/app/ListFragment，android/support/v4/app/DialogFragment，
-                 * androidx/fragment/app/Fragment，androidx/fragment/app/ListFragment，androidx/fragment/app/DialogFragment
-                 */
-                if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)) {
-                    SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc)
-                    if (sensorsAnalyticsMethodCell != null) {
-                        visitedFragMethods.add(nameDesc)
-                        if (isSetUserVisibleHint) {
-                            methodVisitor.visitVarInsn(ALOAD, 0)
-                            methodVisitor.visitVarInsn(ILOAD, variableID)
-                            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
-                        } else if (localIds != null){
-                            methodVisitor.visitVarInsn(ALOAD, 0)
-                            for (localId in localIds) {
-                                methodVisitor.visitVarInsn(ALOAD, localId)
-                            }
-                            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
-                        } else {
-                            visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
-                        }
-                        isHasTracked = true
-                        return
-                    }
-                }
 
                 /**
                  * Menu

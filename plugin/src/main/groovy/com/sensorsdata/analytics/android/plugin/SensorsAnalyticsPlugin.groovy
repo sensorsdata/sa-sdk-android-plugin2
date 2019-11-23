@@ -33,6 +33,7 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
         boolean disableSensorsAnalyticsPlugin = false
         boolean disableSensorsAnalyticsMultiThreadBuild = false
         boolean disableSensorsAnalyticsIncrementalBuild = false
+        boolean isHookOnMethodEnter = false
         Properties properties = new Properties()
         if (project.rootProject.file('gradle.properties').exists()) {
             properties.load(project.rootProject.file('gradle.properties').newDataInputStream())
@@ -40,12 +41,14 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
                     Boolean.parseBoolean(properties.getProperty("disableSensorsAnalyticsPlugin", "false"))
             disableSensorsAnalyticsMultiThreadBuild = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disableMultiThreadBuild", "false"))
             disableSensorsAnalyticsIncrementalBuild = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disableIncrementalBuild", "false"))
+            isHookOnMethodEnter = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.isHookOnMethodEnter", "false"))
         }
         if (!disableSensorsAnalyticsPlugin) {
             AppExtension appExtension = project.extensions.findByType(AppExtension.class)
             SensorsAnalyticsTransformHelper transformHelper = new SensorsAnalyticsTransformHelper(extension)
             transformHelper.disableSensorsAnalyticsIncremental = disableSensorsAnalyticsIncrementalBuild
             transformHelper.disableSensorsAnalyticsMultiThread = disableSensorsAnalyticsMultiThreadBuild
+            transformHelper.isHookOnMethodEnter = isHookOnMethodEnter
             appExtension.registerTransform(new SensorsAnalyticsTransform(transformHelper))
             project.afterEvaluate {
                 Logger.setDebug(extension.debug)
