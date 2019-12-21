@@ -45,7 +45,7 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.1.9"
+    public static final String VERSION = "3.2.0"
     public static final String MIN_SDK_VERSION = "3.0.0"
     private WaitableExecutor waitableExecutor
 
@@ -276,12 +276,13 @@ class SensorsAnalyticsTransform extends Transform {
             } else {
                 String className
                 JarEntry entry = new JarEntry(entryName)
-                jarOutputStream.putNextEntry(entry)
                 byte[] modifiedClassBytes = null
                 byte[] sourceClassBytes
                 try {
+                    jarOutputStream.putNextEntry(entry)
                     sourceClassBytes = IOUtils.toByteArray(inputStream)
                 } catch (Exception e) {
+                    Logger.error("Exception encountered while processing jar: " + jarFile.getAbsolutePath())
                     e.printStackTrace()
                     return null
                 }

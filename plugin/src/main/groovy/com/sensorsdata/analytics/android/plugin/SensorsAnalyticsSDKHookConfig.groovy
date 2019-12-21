@@ -27,7 +27,8 @@ class SensorsAnalyticsSDKHookConfig {
 
     void disableIMEI(String methodName) {
         def imei = new SensorsAnalyticsMethodCell('getIMEI', '(Landroid/content/Context;)Ljava/lang/String;', 'createGetIMEI')
-        def imeiMethods = [imei]
+        def deviceID = new SensorsAnalyticsMethodCell('getDeviceID', '(Landroid/content/Context;I)Ljava/lang/String;', 'createGetDeviceID')
+        def imeiMethods = [imei, deviceID]
         def imeiMethodCells = new HashMap<String, ArrayList<SensorsAnalyticsMethodCell>>()
         imeiMethodCells.put("com/sensorsdata/analytics/android/sdk/util/SensorsDataUtils", imeiMethods)
         methodCells.put(methodName, imeiMethodCells)
@@ -147,6 +148,15 @@ class SensorsAnalyticsSDKHookConfig {
 
     void createGetCarrier(ClassVisitor classVisitor, SensorsAnalyticsMethodCell methodCell) {
         def mv = classVisitor.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, methodCell.name, methodCell.desc, null, null)
+        mv.visitCode()
+        mv.visitLdcInsn("")
+        mv.visitInsn(Opcodes.ARETURN)
+        mv.visitMaxs(1, 1)
+        mv.visitEnd()
+    }
+
+    void createGetDeviceID(ClassVisitor classVisitor, SensorsAnalyticsMethodCell methodCell) {
+        def mv = classVisitor.visitMethod(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC, methodCell.name, methodCell.desc, null, null)
         mv.visitCode()
         mv.visitLdcInsn("")
         mv.visitInsn(Opcodes.ARETURN)
