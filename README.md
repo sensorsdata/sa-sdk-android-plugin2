@@ -44,9 +44,6 @@ dependencies {
 
 See our [full manual](http://www.sensorsdata.cn/manual/android_sdk.html)
 
-或者加入 QQ 讨论群：<br>
-![ QQ 讨论群](https://github.com/sensorsdata/sa-sdk-android/raw/master/docs/qrCode.jpeg)
-
 ## 感谢
 [hugo](https://github.com/JakeWharton/hugo)
 
@@ -57,16 +54,21 @@ See our [full manual](http://www.sensorsdata.cn/manual/android_sdk.html)
 [tracklytics](https://github.com/orhanobut/tracklytics)
 
 
-## 新书推荐
+## 讨论
 
-| 《数据驱动：从方法到实践》 | 《Android 全埋点解决方案》 |
+| 扫码加入神策数据开源社区 QQ 群<br>群号：785122381 | 扫码加入神策数据开源社区微信群 |
 | ------ | ------ |
-| [![《数据驱动：从方法到实践》](https://github.com/sensorsdata/sa-sdk-android/raw/master/docs/data_driven_book.jpg)](https://u.jd.com/dWkE2x) | [![《Android 全埋点解决方案》](https://github.com/sensorsdata/sa-sdk-android/raw/master/docs/android_autotrack_book.jpg)](https://u.jd.com/2JFaeG) |
+|![ QQ 讨论群](https://raw.githubusercontent.com/richardhxy/OpensourceQRCode/master/docs/qrCode_for_qq.jpg) | ![ 微信讨论群 ](https://raw.githubusercontent.com/richardhxy/OpensourceQRCode/master/docs/qrcode_for_wechat.JPG) |
 
+## 公众号
+
+| 扫码关注<br>神策数据开源社区 | 扫码关注<br>神策数据开源社区服务号 |
+| ------ | ------ |
+|![ 微信订阅号 ](https://raw.githubusercontent.com/richardhxy/OpensourceQRCode/master/docs/qrcode_for_wechat_subscription_account.jpg) | ![ 微信服务号 ](https://raw.githubusercontent.com/richardhxy/OpensourceQRCode/master/docs/qrcode_for_wechat_service_account.jpg) |
 
 ## License
 
-Copyright 2015－2019 Sensors Data Inc.
+Copyright 2015－2020 Sensors Data Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
