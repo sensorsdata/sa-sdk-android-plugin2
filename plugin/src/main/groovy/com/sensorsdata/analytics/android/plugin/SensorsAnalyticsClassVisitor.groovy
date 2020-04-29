@@ -267,7 +267,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 }
             }
 
-            void handleCode(){
+            void handleCode() {
                 if (isHasInstrumented || classNameAnalytics.isSensorsDataAPI) {
                     return
                 }
@@ -287,7 +287,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                             methodVisitor.visitVarInsn(ALOAD, 0)
                             methodVisitor.visitVarInsn(ILOAD, variableID)
                             methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
-                        } else if (localIds != null){
+                        } else if (localIds != null) {
                             methodVisitor.visitVarInsn(ALOAD, 0)
                             for (localId in localIds) {
                                 methodVisitor.visitVarInsn(ALOAD, localId)
@@ -348,19 +348,10 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     return
                 }
 
-                /**
-                 * React Native
-                 */
-                if (nameDesc == 'setJSResponder(IIZ)V' && mClassName == 'com/facebook/react/uimanager/NativeViewHierarchyManager') {
-                    methodVisitor.visitVarInsn(ALOAD, 0)
-                    methodVisitor.visitVarInsn(ILOAD, 1)
-                    methodVisitor.visitVarInsn(ILOAD, 2)
-                    methodVisitor.visitVarInsn(ILOAD, 3)
-                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackRN", "(Ljava/lang/Object;IIZ)V", false)
+                if (handleRN()) {
                     isHasTracked = true
                     return
                 }
-
 
                 /**
                  * Menu
@@ -445,6 +436,34 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     trackViewOnClick(methodVisitor, variableID)
                     isHasTracked = true
                 }
+            }
+
+            boolean handleRN() {
+                boolean result = false
+                switch (transformHelper.rnState) {
+                    case SensorsAnalyticsTransformHelper.RN_STATE.NOT_FOUND:
+                        break
+                    case SensorsAnalyticsTransformHelper.RN_STATE.HAS_VERSION:
+                        if (nameDesc == 'handleTouchEvent(Landroid/view/MotionEvent;Lcom/facebook/react/uimanager/events/EventDispatcher;)V' && mClassName == 'com/facebook/react/uimanager/JSTouchDispatcher') {
+                            methodVisitor.visitVarInsn(ALOAD, 0)
+                            methodVisitor.visitVarInsn(ALOAD, 1)
+                            methodVisitor.visitVarInsn(ALOAD, 2)
+                            methodVisitor.visitMethodInsn(INVOKESTATIC, "com/sensorsdata/analytics/RNAgent", "handleTouchEvent", "(Lcom/facebook/react/uimanager/JSTouchDispatcher;Landroid/view/MotionEvent;Lcom/facebook/react/uimanager/events/EventDispatcher;)V", false)
+                            result = true
+                        }
+                        break
+                    case SensorsAnalyticsTransformHelper.RN_STATE.NO_VERSION:
+                        if (nameDesc == 'setJSResponder(IIZ)V' && mClassName == 'com/facebook/react/uimanager/NativeViewHierarchyManager') {
+                            methodVisitor.visitVarInsn(ALOAD, 0)
+                            methodVisitor.visitVarInsn(ILOAD, 1)
+                            methodVisitor.visitVarInsn(ILOAD, 2)
+                            methodVisitor.visitVarInsn(ILOAD, 3)
+                            methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackRN", "(Ljava/lang/Object;IIZ)V", false)
+                            result = true
+                        }
+                        break
+                }
+                return result
             }
 
             void trackViewOnClick(MethodVisitor mv, int index) {

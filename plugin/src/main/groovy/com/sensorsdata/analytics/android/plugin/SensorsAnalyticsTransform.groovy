@@ -45,9 +45,10 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.2.0"
+    public static final String VERSION = "3.2.1"
     public static final String MIN_SDK_VERSION = "3.0.0"
     private WaitableExecutor waitableExecutor
+    private URLClassLoader urlClassLoader
 
     SensorsAnalyticsTransform(SensorsAnalyticsTransformHelper transformHelper) {
         this.transformHelper = transformHelper
@@ -78,18 +79,12 @@ class SensorsAnalyticsTransform extends Transform {
 
     @Override
     void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException {
-        transform2(transformInvocation.context, transformInvocation.inputs, transformInvocation.outputProvider, transformInvocation.incremental)
+        beforeTransform(transformInvocation)
+        transformClass(transformInvocation.context, transformInvocation.inputs, transformInvocation.outputProvider, transformInvocation.incremental)
     }
 
-    private void transform2(Context context, Collection<TransformInput> inputs, TransformOutputProvider outputProvider, boolean isIncremental)
+    private void transformClass(Context context, Collection<TransformInput> inputs, TransformOutputProvider outputProvider, boolean isIncremental)
             throws IOException, TransformException, InterruptedException {
-        //打印提示信息
-        Logger.printCopyright()
-        transformHelper.onTransform()
-        println("[SensorsAnalytics]: 是否开启多线程编译:${!transformHelper.disableSensorsAnalyticsMultiThread}")
-        println("[SensorsAnalytics]: 是否开启增量编译:${!transformHelper.disableSensorsAnalyticsIncremental}")
-        println("[SensorsAnalytics]: 此次是否增量编译:$isIncremental")
-        println("[SensorsAnalytics]: 是否在方法进入时插入代码:${transformHelper.isHookOnMethodEnter}")
         long startTime = System.currentTimeMillis()
         if (!isIncremental) {
             outputProvider.deleteAll()
@@ -134,7 +129,52 @@ class SensorsAnalyticsTransform extends Transform {
         println("[SensorsAnalytics]: 此次编译共耗时:${System.currentTimeMillis() - startTime}毫秒")
     }
 
-    void forEachDirectory(boolean isIncremental, DirectoryInput directoryInput, TransformOutputProvider outputProvider, Context context){
+    private void beforeTransform(TransformInvocation transformInvocation) {
+        //打印提示信息
+        Logger.printCopyright()
+        transformHelper.onTransform()
+        println("[SensorsAnalytics]: 是否开启多线程编译:${!transformHelper.disableSensorsAnalyticsMultiThread}")
+        println("[SensorsAnalytics]: 是否开启增量编译:${!transformHelper.disableSensorsAnalyticsIncremental}")
+        println("[SensorsAnalytics]: 此次是否增量编译:$transformInvocation.incremental")
+        println("[SensorsAnalytics]: 是否在方法进入时插入代码:${transformHelper.isHookOnMethodEnter}")
+
+        traverseForClassLoader(transformInvocation)
+    }
+
+    private void traverseForClassLoader(TransformInvocation transformInvocation) {
+        def urlList = []
+        def androidJar = transformHelper.androidJar()
+        urlList << androidJar.toURI().toURL()
+        transformInvocation.inputs.each { transformInput ->
+            transformInput.jarInputs.each { jarInput ->
+                urlList << jarInput.getFile().toURI().toURL()
+            }
+
+            transformInput.directoryInputs.each { directoryInput ->
+                urlList << directoryInput.getFile().toURI().toURL()
+            }
+        }
+        def urlArray = urlList as URL[]
+        urlClassLoader = new URLClassLoader(urlArray)
+        transformHelper.urlClassLoader = urlClassLoader
+        checkRNState()
+    }
+
+    private void checkRNState() {
+        try {
+            Class rnClazz = urlClassLoader.loadClass("com.sensorsdata.analytics.RNSensorsAnalyticsPackage")
+            try {
+                rnClazz.getDeclaredField("VERSION")
+                transformHelper.rnState = SensorsAnalyticsTransformHelper.RN_STATE.HAS_VERSION
+            } catch (Exception e) {
+                transformHelper.rnState = SensorsAnalyticsTransformHelper.RN_STATE.NO_VERSION
+            }
+        } catch (Exception e) {
+            transformHelper.rnState = SensorsAnalyticsTransformHelper.RN_STATE.NOT_FOUND
+        }
+    }
+
+    void forEachDirectory(boolean isIncremental, DirectoryInput directoryInput, TransformOutputProvider outputProvider, Context context) {
         File dir = directoryInput.file
         File dest = outputProvider.getContentLocation(directoryInput.getName(),
                 directoryInput.getContentTypes(), directoryInput.getScopes(),

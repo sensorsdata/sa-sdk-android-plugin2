@@ -17,25 +17,46 @@
 
 package com.sensorsdata.analytics.android.plugin
 
+import com.android.build.gradle.AppExtension
+
 class SensorsAnalyticsTransformHelper {
 
     SensorsAnalyticsExtension extension
+    AppExtension android
+    RN_STATE rnState = RN_STATE.NOT_FOUND
+
+
     SensorsAnalyticsSDKHookConfig sensorsAnalyticsHookConfig
     boolean disableSensorsAnalyticsMultiThread
     boolean disableSensorsAnalyticsIncremental
     boolean isHookOnMethodEnter
-    HashSet<String> exclude = ['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx', 'com.qiyukf', 'android.arch', 'com.google.android']
-    HashSet<String> include = ['butterknife.internal.DebouncingOnClickListener',
-                               'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
-                               'com.facebook.react.uimanager.NativeViewHierarchyManager']
+    HashSet<String> exclude = new HashSet<>(['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx', 'com.qiyukf', 'android.arch', 'com.google.android'])
+    HashSet<String> include = new HashSet<>(['butterknife.internal.DebouncingOnClickListener',
+                                             'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
+                                             'com.facebook.react.uimanager.NativeViewHierarchyManager'])
     /** 将一些特例需要排除在外 */
-    public static final HashSet<String> special = ['android.support.design.widget.TabLayout$ViewPagerOnTabSelectedListener',
-                                                   'com.google.android.material.tabs.TabLayout$ViewPagerOnTabSelectedListener',
-                                                   'android.support.v7.app.ActionBarDrawerToggle',
-                                                   'androidx.appcompat.app.ActionBarDrawerToggle']
+    public static final HashSet<String> special = new HashSet<>(['android.support.design.widget.TabLayout$ViewPagerOnTabSelectedListener',
+                                                                 'com.google.android.material.tabs.TabLayout$ViewPagerOnTabSelectedListener',
+                                                                 'android.support.v7.app.ActionBarDrawerToggle',
+                                                                 'androidx.appcompat.app.ActionBarDrawerToggle'])
+    URLClassLoader urlClassLoader
 
-    SensorsAnalyticsTransformHelper(SensorsAnalyticsExtension extension) {
+    SensorsAnalyticsTransformHelper(SensorsAnalyticsExtension extension, AppExtension android) {
         this.extension = extension
+        this.android = android
+    }
+
+    File androidJar() throws FileNotFoundException {
+        File jar = new File(getSdkJarDir(), "android.jar")
+        if (!jar.exists()) {
+            throw new FileNotFoundException("Android jar not found!")
+        }
+        return jar
+    }
+
+    private String getSdkJarDir() {
+        String compileSdkVersion = android.getCompileSdkVersion()
+        return String.join(File.separator, android.getSdkDirectory().getAbsolutePath(), "platforms", compileSdkVersion)
     }
 
     void onTransform() {
@@ -105,6 +126,10 @@ class SensorsAnalyticsTransformHelper {
             }
         }
         return classNameAnalytics
+    }
+
+    enum RN_STATE{
+        NOT_FOUND, NO_VERSION, HAS_VERSION
     }
 }
 
