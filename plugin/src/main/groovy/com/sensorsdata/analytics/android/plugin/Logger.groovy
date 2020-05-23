@@ -1,6 +1,6 @@
 /*
  * Created by wangzhuozhou on 2015/08/12.
- * Copyright 2015－2019 Sensors Data Inc.
+ * Copyright 2015－2020 Sensors Data Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.sensorsdata.analytics.android.plugin
 
 import org.objectweb.asm.Opcodes

@@ -1,6 +1,6 @@
 /*
  * Created by wangzhuozhou on 2015/08/12.
- * Copyright 2015－2019 Sensors Data Inc.
+ * Copyright 2015－2020 Sensors Data Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.sensorsdata.analytics.android.plugin
 
 import com.android.build.api.transform.Context
@@ -45,8 +44,8 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.2.1"
-    public static final String MIN_SDK_VERSION = "3.0.0"
+    public static final String VERSION = "3.2.2"
+    public static final String MIN_SDK_VERSION = "4.0.7"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
 
@@ -81,6 +80,7 @@ class SensorsAnalyticsTransform extends Transform {
     void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException {
         beforeTransform(transformInvocation)
         transformClass(transformInvocation.context, transformInvocation.inputs, transformInvocation.outputProvider, transformInvocation.incremental)
+        afterTransform()
     }
 
     private void transformClass(Context context, Collection<TransformInput> inputs, TransformOutputProvider outputProvider, boolean isIncremental)
@@ -139,6 +139,17 @@ class SensorsAnalyticsTransform extends Transform {
         println("[SensorsAnalytics]: 是否在方法进入时插入代码:${transformHelper.isHookOnMethodEnter}")
 
         traverseForClassLoader(transformInvocation)
+    }
+
+    private void afterTransform() {
+        try {
+            if (urlClassLoader != null) {
+                urlClassLoader.close()
+                urlClassLoader = null
+            }
+        } catch (Exception e) {
+            e.printStackTrace()
+        }
     }
 
     private void traverseForClassLoader(TransformInvocation transformInvocation) {

@@ -1,6 +1,6 @@
 /*
  * Created by wangzhuohou on 2015/08/01.
- * Copyright 2015－2019 Sensors Data Inc.
+ * Copyright 2015－2020 Sensors Data Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.sensorsdata.analytics.android.plugin
 
 import org.objectweb.asm.AnnotationVisitor
@@ -173,6 +172,9 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         }
 
         MethodVisitor methodVisitor = cv.visitMethod(access, name, desc, signature, exceptions)
+        if (transformHelper.extension != null && transformHelper.extension.autoHandleWebView && transformHelper.urlClassLoader != null) {
+            methodVisitor = new SensorsAnalyticsWebViewMethodVisitor(methodVisitor, transformHelper)
+        }
         SensorsAnalyticsDefaultMethodVisitor sensorsAnalyticsDefaultMethodVisitor = new SensorsAnalyticsDefaultMethodVisitor(methodVisitor, access, name, desc) {
             boolean isSensorsDataTrackViewOnClickAnnotation = false
             boolean isSensorsDataIgnoreTrackOnClick = false

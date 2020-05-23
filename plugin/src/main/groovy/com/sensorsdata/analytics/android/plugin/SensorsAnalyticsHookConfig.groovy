@@ -1,6 +1,6 @@
 /*
  * Created by wangzhuozhou on 2015/08/12.
- * Copyright 2015－2019 Sensors Data Inc.
+ * Copyright 2015－2020 Sensors Data Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.sensorsdata.analytics.android.plugin
 
 import org.objectweb.asm.Opcodes
@@ -168,6 +167,38 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/view/MenuItem;)V',
                 1, 1,
                 [Opcodes.ALOAD]))
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
+                'onNavigationItemSelected',
+                '(Landroid/view/MenuItem;)Z',
+                'com/google/android/material/navigation/NavigationView$OnNavigationItemSelectedListener',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
+                'onNavigationItemSelected',
+                '(Landroid/view/MenuItem;)Z',
+                'android/support/design/widget/NavigationView$OnNavigationItemSelectedListener',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
+                'onNavigationItemSelected',
+                '(Landroid/view/MenuItem;)Z',
+                'android/support/design/widget/BottomNavigationView$OnNavigationItemSelectedListener',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addInterfaceMethod(new SensorsAnalyticsMethodCell(
+                'onNavigationItemSelected',
+                '(Landroid/view/MenuItem;)Z',
+                'com/google/android/material/bottomnavigation/BottomNavigationView$OnNavigationItemSelectedListener',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
     }
 
     static void addInterfaceMethod(SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell) {
@@ -305,7 +336,31 @@ class SensorsAnalyticsHookConfig {
         addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onNavigationItemSelected',
                 '(Landroid/view/MenuItem;)Z',
+                'Lcom/google/android/material/navigation/NavigationView$OnNavigationItemSelectedListener;',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
+                'onNavigationItemSelected',
+                '(Landroid/view/MenuItem;)Z',
                 'Landroid/support/design/widget/NavigationView$OnNavigationItemSelectedListener;',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
+                'onNavigationItemSelected',
+                '(Landroid/view/MenuItem;)Z',
+                'Landroid/support/design/widget/BottomNavigationView$OnNavigationItemSelectedListener;',
+                'trackMenuItem',
+                '(Landroid/view/MenuItem;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
+        addLambdaMethod(new SensorsAnalyticsMethodCell(
+                'onNavigationItemSelected',
+                '(Landroid/view/MenuItem;)Z',
+                'Lcom/google/android/material/bottomnavigation/BottomNavigationView$OnNavigationItemSelectedListener;',
                 'trackMenuItem',
                 '(Landroid/view/MenuItem;)V',
                 1, 1,

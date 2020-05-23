@@ -1,6 +1,6 @@
 /*
  * Created by renqingyou on 2018/12/01.
- * Copyright 2015－2019 Sensors Data Inc.
+ * Copyright 2015－2020 Sensors Data Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.sensorsdata.analytics.android.plugin
 
 import com.android.build.gradle.AppExtension
@@ -24,13 +23,11 @@ class SensorsAnalyticsTransformHelper {
     SensorsAnalyticsExtension extension
     AppExtension android
     RN_STATE rnState = RN_STATE.NOT_FOUND
-
-
     SensorsAnalyticsSDKHookConfig sensorsAnalyticsHookConfig
     boolean disableSensorsAnalyticsMultiThread
     boolean disableSensorsAnalyticsIncremental
     boolean isHookOnMethodEnter
-    HashSet<String> exclude = new HashSet<>(['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx', 'com.qiyukf', 'android.arch', 'com.google.android'])
+    HashSet<String> exclude = new HashSet<>(['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx', 'com.qiyukf', 'android.arch', 'com.google.android', "com.tencent.smtt"])
     HashSet<String> include = new HashSet<>(['butterknife.internal.DebouncingOnClickListener',
                                              'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
                                              'com.facebook.react.uimanager.NativeViewHierarchyManager'])
