@@ -41,10 +41,11 @@ import java.util.concurrent.Callable
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
+import java.util.zip.ZipEntry
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.2.2"
+    public static final String VERSION = "3.2.3"
     public static final String MIN_SDK_VERSION = "4.0.7"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
@@ -250,8 +251,14 @@ class SensorsAnalyticsTransform extends Transform {
     }
 
     void forEachJar(boolean isIncremental, JarInput jarInput, TransformOutputProvider outputProvider, Context context) {
+        String destName = jarInput.file.name
+        //截取文件路径的 md5 值重命名输出文件，因为可能同名，会覆盖
+        def hexName = DigestUtils.md5Hex(jarInput.file.absolutePath).substring(0, 8)
+        if (destName.endsWith(".jar")) {
+            destName = destName.substring(0, destName.length() - 4)
+        }
         //获得输出文件
-        File destFile = outputProvider.getContentLocation(jarInput.name, jarInput.contentTypes, jarInput.scopes, Format.JAR)
+        File destFile = outputProvider.getContentLocation(destName + "_" + hexName, jarInput.contentTypes, jarInput.scopes, Format.JAR)
         if (isIncremental) {
             Status status = jarInput.getStatus()
             switch (status) {

@@ -255,6 +255,16 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     methodVisitor.visitVarInsn(ALOAD, 2)
                     methodVisitor.visitVarInsn(ASTORE, localId)
                     localIds.add(localId)
+                } else if (nameDesc == "onCheckedChanged(Landroid/widget/RadioGroup;I)V" && pubAndNoStaticAccess) {
+                    localIds = new ArrayList<>()
+                    int firstLocalId = newLocal(Type.getObjectType("android/widget/RadioGroup"))
+                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                    localIds.add(firstLocalId)
+                    int secondLocalId = newLocal(Type.INT_TYPE)
+                    methodVisitor.visitVarInsn(ILOAD, 2)
+                    methodVisitor.visitVarInsn(ISTORE, secondLocalId)
+                    localIds.add(secondLocalId)
                 }
                 if (transformHelper.isHookOnMethodEnter) {
                     handleCode()
@@ -422,6 +432,17 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                         methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackListView", "(Landroid/widget/AdapterView;Landroid/view/View;I)V", false)
                         isHasTracked = true
                         return
+                    } else if (mInterfaces.contains('android/widget/RadioGroup$OnCheckedChangeListener')
+                            && nameDesc == 'onCheckedChanged(Landroid/widget/RadioGroup;I)V') {
+                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS
+                                .get('android/widget/RadioGroup$OnCheckedChangeListeneronCheckedChanged(Landroid/widget/RadioGroup;I)V')
+                        if (sensorsAnalyticsMethodCell != null) {
+                            methodVisitor.visitVarInsn(ALOAD, localIds.get(0))
+                            methodVisitor.visitVarInsn(ILOAD, localIds.get(1))
+                            methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
+                            isHasTracked = true
+                            return
+                        }
                     } else {
                         for (interfaceName in mInterfaces) {
                             SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS.get(interfaceName + nameDesc)
