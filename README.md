@@ -18,7 +18,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:3.2.0'
         //添加 android-gradle-plugin 依赖
-        classpath 'com.sensorsdata.analytics.android:android-gradle-plugin2:3.2.3'
+        classpath 'com.sensorsdata.analytics.android:android-gradle-plugin2:3.2.4'
     }
 }
 
@@ -38,7 +38,7 @@ apply plugin: 'com.sensorsdata.analytics.android'
 
 dependencies {
    //添加 Sensors Analytics SDK 依赖
-   compile 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK:4.0.7'
+   compile 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK:4.0.8'
 }
 ```
 

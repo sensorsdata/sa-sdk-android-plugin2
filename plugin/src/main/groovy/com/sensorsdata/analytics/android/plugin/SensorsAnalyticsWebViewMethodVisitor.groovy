@@ -33,20 +33,25 @@ class SensorsAnalyticsWebViewMethodVisitor extends MethodVisitor implements Opco
                                                  "postUrl(Ljava/lang/String;[B)V"]
     private static final def VIEW_DESC = "Landroid/view/View;"
     private static final def OWNER_WHITE_SET = new HashSet(["android/webkit/WebView", "com/tencent/smtt/sdk/WebView"])
+    private String className
 
 
-    SensorsAnalyticsWebViewMethodVisitor(MethodVisitor mv, SensorsAnalyticsTransformHelper transformHelper) {
+    SensorsAnalyticsWebViewMethodVisitor(MethodVisitor mv, SensorsAnalyticsTransformHelper transformHelper, String className) {
         super(SensorsAnalyticsUtil.ASM_VERSION, mv)
         this.transformHelper = transformHelper
+        this.className = className
     }
 
     @Override
     void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
         if (TARGET_NAME_DESC.contains(name + desc)) {
-            if (isAssignableWebView(owner)) {
-                opcode = INVOKESTATIC
-                owner = SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API
-                desc = reStructureDesc(desc)
+            //忽略 WebView 的子类
+            if (!isAssignableWebView(className)) {
+                if (isAssignableWebView(owner)) {
+                    opcode = INVOKESTATIC
+                    owner = SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API
+                    desc = reStructureDesc(desc)
+                }
             }
         }
         super.visitMethodInsn(opcode, owner, name, desc, itf)
