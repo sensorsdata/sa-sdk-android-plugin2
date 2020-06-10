@@ -49,9 +49,11 @@ class SensorsAnalyticsTransform extends Transform {
     public static final String MIN_SDK_VERSION = "4.0.7"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
+    private boolean hasLibraryPlugin = false
 
-    SensorsAnalyticsTransform(SensorsAnalyticsTransformHelper transformHelper) {
+    SensorsAnalyticsTransform(SensorsAnalyticsTransformHelper transformHelper, boolean hasLibraryPlugin) {
         this.transformHelper = transformHelper
+        this.hasLibraryPlugin = hasLibraryPlugin
         if (!transformHelper.disableSensorsAnalyticsMultiThread) {
             waitableExecutor = WaitableExecutor.useGlobalSharedThreadPool()
         }
@@ -69,7 +71,7 @@ class SensorsAnalyticsTransform extends Transform {
 
     @Override
     Set<QualifiedContent.Scope> getScopes() {
-        return TransformManager.SCOPE_FULL_PROJECT
+        return hasLibraryPlugin ? TransformManager.PROJECT_ONLY : TransformManager.SCOPE_FULL_PROJECT
     }
 
     @Override

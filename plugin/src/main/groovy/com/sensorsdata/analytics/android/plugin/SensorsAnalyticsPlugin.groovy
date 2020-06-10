@@ -17,6 +17,8 @@
 package com.sensorsdata.analytics.android.plugin
 
 import com.android.build.gradle.AppExtension
+import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.LibraryExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.internal.reflect.Instantiator
@@ -43,12 +45,13 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
             isHookOnMethodEnter = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.isHookOnMethodEnter", "false"))
         }
         if (!disableSensorsAnalyticsPlugin) {
-            AppExtension appExtension = project.extensions.findByType(AppExtension.class)
+            boolean hasLibraryPlugin = project.plugins.hasPlugin("com.android.library")
+            BaseExtension baseExtension = project.extensions.findByType(hasLibraryPlugin ? LibraryExtension.class : AppExtension.class)
             SensorsAnalyticsTransformHelper transformHelper = new SensorsAnalyticsTransformHelper(extension, appExtension)
             transformHelper.disableSensorsAnalyticsIncremental = disableSensorsAnalyticsIncrementalBuild
             transformHelper.disableSensorsAnalyticsMultiThread = disableSensorsAnalyticsMultiThreadBuild
             transformHelper.isHookOnMethodEnter = isHookOnMethodEnter
-            appExtension.registerTransform(new SensorsAnalyticsTransform(transformHelper))
+            baseExtension.registerTransform(new SensorsAnalyticsTransform(transformHelper, hasLibraryPlugin))
             project.afterEvaluate {
                 Logger.setDebug(extension.debug)
             }
