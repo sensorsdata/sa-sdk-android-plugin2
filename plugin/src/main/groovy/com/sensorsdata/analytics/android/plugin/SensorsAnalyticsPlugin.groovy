@@ -47,7 +47,7 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
         if (!disableSensorsAnalyticsPlugin) {
             boolean hasLibraryPlugin = project.plugins.hasPlugin("com.android.library")
             BaseExtension baseExtension = project.extensions.findByType(hasLibraryPlugin ? LibraryExtension.class : AppExtension.class)
-            SensorsAnalyticsTransformHelper transformHelper = new SensorsAnalyticsTransformHelper(extension, appExtension)
+            SensorsAnalyticsTransformHelper transformHelper = new SensorsAnalyticsTransformHelper(extension, baseExtension)
             transformHelper.disableSensorsAnalyticsIncremental = disableSensorsAnalyticsIncrementalBuild
             transformHelper.disableSensorsAnalyticsMultiThread = disableSensorsAnalyticsMultiThreadBuild
             transformHelper.isHookOnMethodEnter = isHookOnMethodEnter
