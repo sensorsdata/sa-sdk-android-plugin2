@@ -33,19 +33,20 @@ import groovy.io.FileType
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
+import org.apache.commons.io.output.ByteArrayOutputStream
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
 
+import java.lang.reflect.Field
 import java.util.concurrent.Callable
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
-import java.util.zip.ZipEntry
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.2.4"
+    public static final String VERSION = "3.2.5"
     public static final String MIN_SDK_VERSION = "4.0.7"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
@@ -126,7 +127,6 @@ class SensorsAnalyticsTransform extends Transform {
         if (waitableExecutor) {
             waitableExecutor.waitForTasksWithQuickFail(true)
         }
-
         println("[SensorsAnalytics]: 此次编译共耗时:${System.currentTimeMillis() - startTime}毫秒")
     }
 
@@ -176,7 +176,9 @@ class SensorsAnalyticsTransform extends Transform {
         try {
             Class rnClazz = urlClassLoader.loadClass("com.sensorsdata.analytics.RNSensorsAnalyticsPackage")
             try {
-                rnClazz.getDeclaredField("VERSION")
+                Field versionField = rnClazz.getDeclaredField("VERSION")
+                versionField.setAccessible(true)
+                transformHelper.rnVersion = versionField.get(null) as String
                 transformHelper.rnState = SensorsAnalyticsTransformHelper.RN_STATE.HAS_VERSION
             } catch (Exception e) {
                 transformHelper.rnState = SensorsAnalyticsTransformHelper.RN_STATE.NO_VERSION
@@ -325,6 +327,7 @@ class SensorsAnalyticsTransform extends Transform {
             try {
                 inputStream = file.getInputStream(jarEntry)
             } catch (Exception e) {
+                IOUtils.closeQuietly(inputStream)
                 e.printStackTrace()
                 return null
             }
@@ -338,9 +341,11 @@ class SensorsAnalyticsTransform extends Transform {
                 byte[] sourceClassBytes
                 try {
                     jarOutputStream.putNextEntry(entry)
-                    sourceClassBytes = IOUtils.toByteArray(inputStream)
+                    sourceClassBytes = SensorsAnalyticsUtil.toByteArrayAndAutoCloseStream(inputStream)
                 } catch (Exception e) {
                     Logger.error("Exception encountered while processing jar: " + jarFile.getAbsolutePath())
+                    IOUtils.closeQuietly(file)
+                    IOUtils.closeQuietly(jarOutputStream)
                     e.printStackTrace()
                     return null
                 }
@@ -394,7 +399,7 @@ class SensorsAnalyticsTransform extends Transform {
             String className = path2ClassName(classFile.absolutePath.replace(dir.absolutePath + File.separator, ""))
             ClassNameAnalytics classNameAnalytics = transformHelper.analytics(className)
             if (classNameAnalytics.isShouldModify) {
-                byte[] sourceClassBytes = IOUtils.toByteArray(new FileInputStream(classFile))
+                byte[] sourceClassBytes = SensorsAnalyticsUtil.toByteArrayAndAutoCloseStream(new FileInputStream(classFile))
                 byte[] modifiedClassBytes = modifyClass(sourceClassBytes, classNameAnalytics)
                 if (modifiedClassBytes) {
                     modified = new File(tempDir, className.replace('.', '') + '.class')

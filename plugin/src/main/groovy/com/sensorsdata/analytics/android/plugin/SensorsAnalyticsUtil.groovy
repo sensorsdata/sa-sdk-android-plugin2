@@ -17,6 +17,8 @@
 package com.sensorsdata.analytics.android.plugin
 
 import groovy.transform.CompileStatic
+import org.apache.commons.io.IOUtils
+import org.apache.commons.io.output.ByteArrayOutputStream
 import org.objectweb.asm.Opcodes
 
 @CompileStatic
@@ -78,5 +80,24 @@ class SensorsAnalyticsUtil {
 
     static boolean isTargetClassInSpecial(String className) {
         return specialClass.contains(className)
+    }
+
+    static byte[] toByteArrayAndAutoCloseStream(InputStream input) throws Exception {
+        ByteArrayOutputStream output = null
+        try {
+            output = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024 * 4]
+            int n = 0
+            while (-1 != (n = input.read(buffer))) {
+                output.write(buffer, 0, n)
+            }
+            output.flush()
+            return output.toByteArray()
+        } catch (Exception e) {
+            throw e
+        } finally {
+            IOUtils.closeQuietly(output)
+            IOUtils.closeQuietly(input)
+        }
     }
 }

@@ -23,6 +23,7 @@ class SensorsAnalyticsTransformHelper {
     SensorsAnalyticsExtension extension
     AppExtension android
     RN_STATE rnState = RN_STATE.NOT_FOUND
+    String rnVersion = ""
     SensorsAnalyticsSDKHookConfig sensorsAnalyticsHookConfig
     boolean disableSensorsAnalyticsMultiThread
     boolean disableSensorsAnalyticsIncremental

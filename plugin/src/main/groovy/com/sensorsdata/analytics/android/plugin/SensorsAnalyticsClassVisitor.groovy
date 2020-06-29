@@ -467,6 +467,14 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     case SensorsAnalyticsTransformHelper.RN_STATE.NOT_FOUND:
                         break
                     case SensorsAnalyticsTransformHelper.RN_STATE.HAS_VERSION:
+                        if (transformHelper.rnVersion > '2.0.0' && mSuperName == "com/facebook/react/uimanager/ViewGroupManager"
+                                && nameDesc == "addView(Landroid/view/ViewGroup;Landroid/view/View;I)V") {
+                            methodVisitor.visitVarInsn(ALOAD, 2)
+                            methodVisitor.visitVarInsn(ILOAD, 3)
+                            methodVisitor.visitMethodInsn(INVOKESTATIC, "com/sensorsdata/analytics/RNAgent", "addView", "(Landroid/view/View;I)V", false)
+                            result = true
+                        }
+
                         if (nameDesc == 'handleTouchEvent(Landroid/view/MotionEvent;Lcom/facebook/react/uimanager/events/EventDispatcher;)V' && mClassName == 'com/facebook/react/uimanager/JSTouchDispatcher') {
                             methodVisitor.visitVarInsn(ALOAD, 0)
                             methodVisitor.visitVarInsn(ALOAD, 1)
