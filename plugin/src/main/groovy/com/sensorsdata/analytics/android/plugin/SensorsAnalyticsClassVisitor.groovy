@@ -236,10 +236,23 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     methodVisitor.visitVarInsn(ALOAD, 1)
                     methodVisitor.visitVarInsn(ASTORE, variableID)
                 } else if (nameDesc == 'onItemClick(Landroid/widget/AdapterView;Landroid/view/View;IJ)V' && pubAndNoStaticAccess) {
+                    localIds = new ArrayList<>()
                     isOnItemClickMethod = true
-                    variableID = newLocal(Type.getObjectType("java/lang/Integer"))
+
+                    int first = newLocal(Type.getObjectType("android/widget/AdapterView"))
                     methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ASTORE, variableID)
+                    methodVisitor.visitVarInsn(ASTORE, first)
+                    localIds.add(first)
+
+                    int second = newLocal(Type.getObjectType("android/view/View"))
+                    methodVisitor.visitVarInsn(ALOAD, 2)
+                    methodVisitor.visitVarInsn(ASTORE, second)
+                    localIds.add(second)
+
+                    int third = newLocal(Type.INT_TYPE)
+                    methodVisitor.visitVarInsn(ILOAD, 3)
+                    methodVisitor.visitVarInsn(ISTORE, third)
+                    localIds.add(third)
                 } else if (nameDesc == 'setUserVisibleHint(Z)V' && pubAndNoStaticAccess) {
                     isSetUserVisibleHint = true
                     variableID = newLocal(Type.getObjectType("java/lang/Integer"))
@@ -264,6 +277,26 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     int secondLocalId = newLocal(Type.INT_TYPE)
                     methodVisitor.visitVarInsn(ILOAD, 2)
                     methodVisitor.visitVarInsn(ISTORE, secondLocalId)
+                    localIds.add(secondLocalId)
+                } else if (nameDesc == "onClick(Landroid/content/DialogInterface;I)V" && pubAndNoStaticAccess) {
+                    localIds = new ArrayList<>()
+                    int firstLocalId = newLocal(Type.getObjectType("android/content/DialogInterface"))
+                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                    localIds.add(firstLocalId)
+                    int secondLocalId = newLocal(Type.INT_TYPE)
+                    methodVisitor.visitVarInsn(ILOAD, 2)
+                    methodVisitor.visitVarInsn(ISTORE, secondLocalId)
+                    localIds.add(secondLocalId)
+                } else if (SensorsAnalyticsUtil.isTargetMenuMethodDesc(nameDesc) && pubAndNoStaticAccess) {
+                    localIds = new ArrayList<>()
+                    int firstLocalId = newLocal(Type.getObjectType("java/lang/Object"))
+                    methodVisitor.visitVarInsn(ALOAD, 0)
+                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                    localIds.add(firstLocalId)
+                    int secondLocalId = newLocal(Type.getObjectType("android/view/MenuItem"))
+                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitVarInsn(ASTORE, secondLocalId)
                     localIds.add(secondLocalId)
                 }
                 if (transformHelper.isHookOnMethodEnter) {
@@ -370,8 +403,8 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                  * 目前支持 onContextItemSelected(MenuItem item)、onOptionsItemSelected(MenuItem item)
                  */
                 if (SensorsAnalyticsUtil.isTargetMenuMethodDesc(nameDesc)) {
-                    methodVisitor.visitVarInsn(ALOAD, 0)
-                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitVarInsn(ALOAD, localIds[0])
+                    methodVisitor.visitVarInsn(ALOAD, localIds[1])
                     methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackMenuItem", "(Ljava/lang/Object;Landroid/view/MenuItem;)V", false)
                     isHasTracked = true
                     return
@@ -426,9 +459,9 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
 
                 if (mInterfaces != null && mInterfaces.length > 0) {
                     if (isOnItemClickMethod && mInterfaces.contains('android/widget/AdapterView$OnItemClickListener')) {
-                        methodVisitor.visitVarInsn(ALOAD, variableID)
-                        methodVisitor.visitVarInsn(ALOAD, 2)
-                        methodVisitor.visitVarInsn(ILOAD, 3)
+                        methodVisitor.visitVarInsn(ALOAD, localIds.get(0))
+                        methodVisitor.visitVarInsn(ALOAD, localIds.get(1))
+                        methodVisitor.visitVarInsn(ILOAD, localIds.get(2))
                         methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackListView", "(Landroid/widget/AdapterView;Landroid/view/View;I)V", false)
                         isHasTracked = true
                         return
@@ -436,6 +469,17 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                             && nameDesc == 'onCheckedChanged(Landroid/widget/RadioGroup;I)V') {
                         SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS
                                 .get('android/widget/RadioGroup$OnCheckedChangeListeneronCheckedChanged(Landroid/widget/RadioGroup;I)V')
+                        if (sensorsAnalyticsMethodCell != null) {
+                            methodVisitor.visitVarInsn(ALOAD, localIds.get(0))
+                            methodVisitor.visitVarInsn(ILOAD, localIds.get(1))
+                            methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
+                            isHasTracked = true
+                            return
+                        }
+                    } else if (mInterfaces.contains('android/content/DialogInterface$OnClickListener')
+                            && nameDesc == 'onClick(Landroid/content/DialogInterface;I)V') {
+                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS
+                                .get('android/content/DialogInterface$OnClickListeneronClick(Landroid/content/DialogInterface;I)V')
                         if (sensorsAnalyticsMethodCell != null) {
                             methodVisitor.visitVarInsn(ALOAD, localIds.get(0))
                             methodVisitor.visitVarInsn(ILOAD, localIds.get(1))
