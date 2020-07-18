@@ -82,6 +82,45 @@ class SensorsAnalyticsUtil {
         return specialClass.contains(className)
     }
 
+    /**
+     * 比较两个字符串版本信息大小，例如 2.01.10 > 2.1.9.1.2
+     *
+     * @param version1 版本信息字符串
+     * @param version2 版本信息字符串
+     * @return 如果返回值为 0，表示版本相等；如果返回值为 1 表示 version1 大于 version2；如果返回值为 -1，表示 version1 小于 version2。
+     */
+    static int compareVersion(String version1, String version2) {
+        def v1Array = version1.replace("-pre", "").split("\\.")
+        def v2Array = version2.replace("-pre", "").split("\\.")
+        def maxLength = Math.max(v1Array.length, v2Array.length)
+        String str1, str2
+        for (int index = 0; index < maxLength; index++) {
+            if (v1Array.length > index) {
+                str1 = v1Array[index]
+            } else {
+                return -1
+            }
+            if (v2Array.length > index) {
+                str2 = v2Array[index]
+            } else {
+                return 1
+            }
+            if (str1 != null && str2 != null) {
+                try {
+                    int num1 = Integer.valueOf(str1)
+                    int num2 = Integer.valueOf(str2)
+                    if (num1 != num2) {
+                        return num1 - num2 > 0 ? 1 : -1
+                    }
+                } catch (Exception ignored) {
+                    return str1 <=> str2
+                }
+            }
+        }
+        return 0
+    }
+
+
     static byte[] toByteArrayAndAutoCloseStream(InputStream input) throws Exception {
         ByteArrayOutputStream output = null
         try {

@@ -134,7 +134,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         if (classNameAnalytics.isSensorsDataAPI) {
             if ('VERSION' == name) {
                 String version = (String) value
-                if (SensorsAnalyticsTransform.MIN_SDK_VERSION > version) {
+                if (SensorsAnalyticsUtil.compareVersion(SensorsAnalyticsTransform.MIN_SDK_VERSION, version) > 0) {
                     String errMessage = "你目前集成的神策埋点 SDK 版本号为 v${version}，请升级到 v${SensorsAnalyticsTransform.MIN_SDK_VERSION} 及以上的版本。详情请参考：https://github.com/sensorsdata/sa-sdk-android"
                     Logger.error(errMessage)
                     throw new Error(errMessage)
@@ -142,7 +142,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
             } else if ('MIN_PLUGIN_VERSION' == name) {
                 String minPluginVersion = (String) value
                 if (minPluginVersion != "" && minPluginVersion != null) {
-                    if (SensorsAnalyticsTransform.VERSION < minPluginVersion) {
+                    if (SensorsAnalyticsUtil.compareVersion(SensorsAnalyticsTransform.VERSION, minPluginVersion) < 0) {
                         String errMessage = "你目前集成的神策插件版本号为 v${SensorsAnalyticsTransform.VERSION}，请升级到 v${minPluginVersion} 及以上的版本。详情请参考：https://github.com/sensorsdata/sa-sdk-android-plugin2"
                         Logger.error(errMessage)
                         throw new Error(errMessage)
@@ -173,7 +173,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
 
         MethodVisitor methodVisitor = cv.visitMethod(access, name, desc, signature, exceptions)
         if (transformHelper.extension != null && transformHelper.extension.autoHandleWebView && transformHelper.urlClassLoader != null) {
-            methodVisitor = new SensorsAnalyticsWebViewMethodVisitor(methodVisitor, transformHelper, mClassName)
+            methodVisitor = new SensorsAnalyticsWebViewMethodVisitor(methodVisitor, transformHelper, mClassName, mSuperName)
         }
         SensorsAnalyticsDefaultMethodVisitor sensorsAnalyticsDefaultMethodVisitor = new SensorsAnalyticsDefaultMethodVisitor(methodVisitor, access, name, desc) {
             boolean isSensorsDataTrackViewOnClickAnnotation = false
@@ -498,9 +498,17 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                         }
                     }
                 }
-
-                if (isOnClickMethod) {
+                handleClassMethod(mClassName, nameDesc)
+                if (!isHasTracked && isOnClickMethod) {
                     trackViewOnClick(methodVisitor, variableID)
+                    isHasTracked = true
+                }
+            }
+
+            void handleClassMethod(String className, String nameDesc) {
+                SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.CLASS_METHODS.get(className + nameDesc)
+                if (sensorsAnalyticsMethodCell != null) {
+                    visitMethodWithLoadedParams(methodVisitor, INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
                     isHasTracked = true
                 }
             }

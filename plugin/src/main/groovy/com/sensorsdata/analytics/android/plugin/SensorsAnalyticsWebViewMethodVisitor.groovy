@@ -34,19 +34,20 @@ class SensorsAnalyticsWebViewMethodVisitor extends MethodVisitor implements Opco
     private static final def VIEW_DESC = "Landroid/view/View;"
     private static final def OWNER_WHITE_SET = new HashSet(["android/webkit/WebView", "com/tencent/smtt/sdk/WebView"])
     private String className
+    private String superName
 
 
-    SensorsAnalyticsWebViewMethodVisitor(MethodVisitor mv, SensorsAnalyticsTransformHelper transformHelper, String className) {
+    SensorsAnalyticsWebViewMethodVisitor(MethodVisitor mv, SensorsAnalyticsTransformHelper transformHelper, String className, String superName) {
         super(SensorsAnalyticsUtil.ASM_VERSION, mv)
         this.transformHelper = transformHelper
         this.className = className
+        this.superName = superName
     }
 
     @Override
     void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
         if (TARGET_NAME_DESC.contains(name + desc)) {
-            //忽略 WebView 的子类
-            if (!isAssignableWebView(className)) {
+            if (!checkWebViewChild(className)) {
                 if (isAssignableWebView(owner)) {
                     opcode = INVOKESTATIC
                     owner = SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API
@@ -55,6 +56,19 @@ class SensorsAnalyticsWebViewMethodVisitor extends MethodVisitor implements Opco
             }
         }
         super.visitMethodInsn(opcode, owner, name, desc, itf)
+    }
+
+    /**
+     * 判断是否是 WebView 的子类，避免 WebView 子类中调用 load* 方法，导致的递归调用
+     *
+     * @param className 当前被处理的类
+     * @return true 是 WebView 的子类，false 非 WebView 子类
+     */
+    private boolean checkWebViewChild(String className) {
+        if (superName == "com/tencent/smtt/sdk/WebViewClient") {
+            return false
+        }
+        isAssignableWebView(className)
     }
 
     private boolean isAssignableWebView(String owner) {
@@ -104,6 +118,7 @@ class SensorsAnalyticsWebViewMethodVisitor extends MethodVisitor implements Opco
             return (isPreviousX5WebView = true)
         }
     }
+
 
     private static String reStructureDesc(String desc) {
         return desc.replaceFirst("\\(", "(" + VIEW_DESC)
