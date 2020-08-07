@@ -23,9 +23,9 @@ import org.objectweb.asm.Opcodes
 class SensorsAnalyticsWebViewMethodVisitor extends MethodVisitor implements Opcodes {
 
     private SensorsAnalyticsTransformHelper transformHelper
-    private static Class webView
-    private static Class x5WebView
-    private static boolean isPreviousX5WebView = false
+    private Class webView
+    private Class x5WebView
+    private boolean isPreviousX5WebView = false
     private static X5WebViewStatus x5WebViewStatus = X5WebViewStatus.NOT_INITIAL
     private static final def TARGET_NAME_DESC = ["loadUrl(Ljava/lang/String;)V", "loadUrl(Ljava/lang/String;Ljava/util/Map;)V",
                                                  "loadData(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
@@ -118,7 +118,6 @@ class SensorsAnalyticsWebViewMethodVisitor extends MethodVisitor implements Opco
             return (isPreviousX5WebView = true)
         }
     }
-
 
     private static String reStructureDesc(String desc) {
         return desc.replaceFirst("\\(", "(" + VIEW_DESC)

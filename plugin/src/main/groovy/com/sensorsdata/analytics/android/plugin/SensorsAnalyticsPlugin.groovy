@@ -49,9 +49,6 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
             transformHelper.disableSensorsAnalyticsMultiThread = disableSensorsAnalyticsMultiThreadBuild
             transformHelper.isHookOnMethodEnter = isHookOnMethodEnter
             appExtension.registerTransform(new SensorsAnalyticsTransform(transformHelper))
-            project.afterEvaluate {
-                Logger.setDebug(extension.debug)
-            }
         } else {
             Logger.error("------------您已关闭了神策插件--------------")
         }

@@ -46,7 +46,7 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.2.7"
+    public static final String VERSION = "3.2.8"
     public static final String MIN_SDK_VERSION = "4.0.7"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
@@ -133,6 +133,7 @@ class SensorsAnalyticsTransform extends Transform {
     private void beforeTransform(TransformInvocation transformInvocation) {
         //打印提示信息
         Logger.printCopyright()
+        Logger.setDebug(transformHelper.extension.debug)
         transformHelper.onTransform()
         println("[SensorsAnalytics]: 是否开启多线程编译:${!transformHelper.disableSensorsAnalyticsMultiThread}")
         println("[SensorsAnalytics]: 是否开启增量编译:${!transformHelper.disableSensorsAnalyticsIncremental}")
