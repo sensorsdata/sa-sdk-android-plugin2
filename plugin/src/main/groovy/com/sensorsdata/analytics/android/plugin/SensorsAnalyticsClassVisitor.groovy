@@ -499,7 +499,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     }
                 }
                 handleClassMethod(mClassName, nameDesc)
-                if (!isHasTracked && isOnClickMethod) {
+                if (isOnClickMethod) {
                     trackViewOnClick(methodVisitor, variableID)
                     isHasTracked = true
                 }
