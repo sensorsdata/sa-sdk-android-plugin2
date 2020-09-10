@@ -288,6 +288,8 @@ class SensorsAnalyticsHookConfig {
      */
 
     public final static HashMap<String, SensorsAnalyticsMethodCell> LAMBDA_METHODS = new HashMap<>()
+    //lambda 参数优化取样
+    public final static ArrayList<SensorsAnalyticsMethodCell> SAMPLING_LAMBDA_METHODS = new ArrayList<>()
     static {
         addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onClick',
@@ -314,14 +316,6 @@ class SensorsAnalyticsHookConfig {
                 1, 1,
                 [Opcodes.ALOAD]))
         addLambdaMethod(new SensorsAnalyticsMethodCell(
-                'onStopTrackingTouch',
-                '(Landroid/widget/SeekBar;)V',
-                'Landroid/widget/SeekBar$OnSeekBarChangeListener;',
-                'trackViewOnClick',
-                '(Landroid/view/View;)V',
-                1, 1,
-                [Opcodes.ALOAD]))
-        addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onCheckedChanged',
                 '(Landroid/widget/RadioGroup;I)V',
                 'Landroid/widget/RadioGroup$OnCheckedChangeListener;',
@@ -338,6 +332,14 @@ class SensorsAnalyticsHookConfig {
                 1, 2,
                 [Opcodes.ALOAD, Opcodes.ILOAD]))
         addLambdaMethod(new SensorsAnalyticsMethodCell(
+                'onItemClick',
+                '(Landroid/widget/AdapterView;Landroid/view/View;IJ)V',
+                'Landroid/widget/AdapterView$OnItemClickListener;',
+                'trackListView',
+                '(Landroid/widget/AdapterView;Landroid/view/View;I)V',
+                1, 3,
+                [Opcodes.ALOAD, Opcodes.ALOAD, Opcodes.ILOAD]))
+        SAMPLING_LAMBDA_METHODS.add(new SensorsAnalyticsMethodCell(
                 'onItemClick',
                 '(Landroid/widget/AdapterView;Landroid/view/View;IJ)V',
                 'Landroid/widget/AdapterView$OnItemClickListener;',

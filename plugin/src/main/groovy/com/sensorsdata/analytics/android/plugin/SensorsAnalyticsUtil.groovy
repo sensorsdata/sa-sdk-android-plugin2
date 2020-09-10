@@ -139,4 +139,47 @@ class SensorsAnalyticsUtil {
             IOUtils.closeQuietly(input)
         }
     }
+
+    /**
+     * 获取 LOAD 或 STORE 的相反指令，例如 ILOAD => ISTORE，ASTORE => ALOAD
+     *
+     * @param LOAD 或 STORE 指令
+     * @return 返回相对应的指令
+     */
+    static int convertOpcodes(int code) {
+        int result = code
+        switch (code) {
+            case Opcodes.ILOAD:
+                result = Opcodes.ISTORE
+                break
+            case Opcodes.ALOAD:
+                result = Opcodes.ASTORE
+                break
+            case Opcodes.LLOAD:
+                result = Opcodes.LSTORE
+                break
+            case Opcodes.FLOAD:
+                result = Opcodes.FSTORE
+                break
+            case Opcodes.DLOAD:
+                result = Opcodes.DSTORE
+                break
+            case Opcodes.ISTORE:
+                result = Opcodes.ILOAD
+                break
+            case Opcodes.ASTORE:
+                result = Opcodes.ALOAD
+                break
+            case Opcodes.LSTORE:
+                result = Opcodes.LLOAD
+                break
+            case Opcodes.FSTORE:
+                result = Opcodes.FLOAD
+                break
+            case Opcodes.DSTORE:
+                result = Opcodes.DLOAD
+                break
+        }
+        return result
+    }
 }

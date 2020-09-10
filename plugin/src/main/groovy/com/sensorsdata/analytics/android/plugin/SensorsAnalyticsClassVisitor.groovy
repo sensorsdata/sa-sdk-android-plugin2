@@ -298,9 +298,47 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     methodVisitor.visitVarInsn(ALOAD, 1)
                     methodVisitor.visitVarInsn(ASTORE, secondLocalId)
                     localIds.add(secondLocalId)
+                } else if (!transformHelper.isHookOnMethodEnter && nameDesc == "onMenuItemClick(Landroid/view/MenuItem;)Z" && pubAndNoStaticAccess) {
+                    localIds = new ArrayList<>()
+                    int firstLocalId = newLocal(Type.getObjectType("android/view/MenuItem"))
+                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                    localIds.add(firstLocalId)
                 }
                 if (transformHelper.isHookOnMethodEnter) {
                     handleCode()
+                }
+
+                // Lambda 参数优化部分，对现有参数进行复制
+                if (!transformHelper.isHookOnMethodEnter && transformHelper.extension.lambdaEnabled) {
+                    SensorsAnalyticsMethodCell lambdaMethodCell = mLambdaMethodCells.get(nameDesc)
+                    if (lambdaMethodCell != null) {
+                        //判断是否是在采样中，在采样中才会处理或者开关打开也统一处理
+                        if (transformHelper.extension.lambdaParamOptimize || SensorsAnalyticsHookConfig.SAMPLING_LAMBDA_METHODS.contains(lambdaMethodCell)) {
+                            Type[] types = Type.getArgumentTypes(lambdaMethodCell.desc)
+                            int length = types.length
+                            Type[] lambdaTypes = Type.getArgumentTypes(desc)
+                            // paramStart 为访问的方法参数的下标，从 0 开始
+                            int paramStart = lambdaTypes.length - length
+                            if (paramStart < 0) {
+                                return
+                            } else {
+                                for (int i = 0; i < length; i++) {
+                                    if (lambdaTypes[paramStart + i].descriptor != types[i].descriptor) {
+                                        return
+                                    }
+                                }
+                            }
+                            boolean isStaticMethod = SensorsAnalyticsUtil.isStatic(access)
+                            localIds = new ArrayList<>()
+                            for (int i = paramStart; i < paramStart + lambdaMethodCell.paramsCount; i++) {
+                                int localId = newLocal(types[i - paramStart])
+                                methodVisitor.visitVarInsn(lambdaMethodCell.opcodes.get(i - paramStart), getVisitPosition(lambdaTypes, i, isStaticMethod))
+                                methodVisitor.visitVarInsn(SensorsAnalyticsUtil.convertOpcodes(lambdaMethodCell.opcodes.get(i - paramStart)), localId)
+                                localIds.add(localId)
+                            }
+                        }
+                    }
                 }
             }
 
@@ -380,8 +418,15 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                                 return
                             }
                         }
-                        for (int i = paramStart; i < paramStart + lambdaMethodCell.paramsCount; i++) {
-                            methodVisitor.visitVarInsn(lambdaMethodCell.opcodes.get(i - paramStart), getVisitPosition(lambdaTypes, i, isStaticMethod))
+                        //如果在采样中，就按照最新的处理流程来操作
+                        if (transformHelper.extension.lambdaParamOptimize || SensorsAnalyticsHookConfig.SAMPLING_LAMBDA_METHODS.contains(lambdaMethodCell)) {
+                            for (int i = paramStart; i < paramStart + lambdaMethodCell.paramsCount; i++) {
+                                methodVisitor.visitVarInsn(lambdaMethodCell.opcodes.get(i - paramStart), localIds[i - paramStart])
+                            }
+                        } else {
+                            for (int i = paramStart; i < paramStart + lambdaMethodCell.paramsCount; i++) {
+                                methodVisitor.visitVarInsn(lambdaMethodCell.opcodes.get(i - paramStart), getVisitPosition(lambdaTypes, i, isStaticMethod))
+                            }
                         }
                         methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, lambdaMethodCell.agentName, lambdaMethodCell.agentDesc, false)
                         isHasTracked = true
@@ -486,6 +531,16 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                             methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
                             isHasTracked = true
                             return
+                        }
+                    } else if (nameDesc == 'onMenuItemClick(Landroid/view/MenuItem;)Z') {
+                        for (interfaceName in mInterfaces) {
+                            SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS.get(interfaceName + nameDesc)
+                            if (sensorsAnalyticsMethodCell != null) {
+                                methodVisitor.visitVarInsn(ALOAD, localIds.get(0))
+                                methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
+                                isHasTracked = true
+                                return
+                            }
                         }
                     } else {
                         for (interfaceName in mInterfaces) {

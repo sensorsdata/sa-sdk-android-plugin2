@@ -26,6 +26,7 @@ class SensorsAnalyticsExtension {
     public boolean useInclude = false
     public boolean lambdaEnabled = true
     public boolean autoHandleWebView = true
+    public boolean lambdaParamOptimize = false
 
     public ArrayList<String> exclude = []
     public ArrayList<String> include = []
@@ -63,6 +64,7 @@ class SensorsAnalyticsExtension {
                 "\tdisableJar=" + disableJar + "\n" +
                 "\tuseInclude=" + useInclude + "\n" +
                 "\tautoHandleWebView=" + autoHandleWebView + "\n" +
+                "\tlambdaParamOptimize=" + lambdaParamOptimize + "\n" +
                 "\tlambdaEnabled=" + lambdaEnabled + "\n" +
                 "\texclude=[" + excludeBuilder.toString() + "]" + "\n" +
                 "\tinclude=[" + includeBuilder.toString() + "]" + "\n" +

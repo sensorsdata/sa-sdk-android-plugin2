@@ -66,4 +66,9 @@ class SensorsAnalyticsMethodCell {
         this.paramsCount = paramsCount
         this.opcodes = opcodes
     }
+
+    @Override
+    boolean equals(Object cell) {
+        return this.name == cell.name && this.desc == cell.desc && this.parent == cell.parent
+    }
 }
