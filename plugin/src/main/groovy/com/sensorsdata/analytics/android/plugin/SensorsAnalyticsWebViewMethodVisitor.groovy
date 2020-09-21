@@ -83,8 +83,8 @@ class SensorsAnalyticsWebViewMethodVisitor extends MethodVisitor implements Opco
                 }
             }
             return checkAndroidWebView(ownerClass, owner) || checkX5WebView(ownerClass, owner)
-        } catch (Exception e) {
-            e.printStackTrace()
+        } catch (Throwable throwable) {
+            Logger.warn("Can not load class, if you have any questions, please contact our technical services: classname:${className}, exception: ${throwable}")
         }
         return false
     }
@@ -108,7 +108,7 @@ class SensorsAnalyticsWebViewMethodVisitor extends MethodVisitor implements Opco
             try {
                 x5WebView = transformHelper.urlClassLoader.loadClass("com.tencent.smtt.sdk.WebView")
                 x5WebViewStatus = X5WebViewStatus.FOUND
-            } catch (ClassNotFoundException ignored) {
+            } catch (Throwable ignored) {
                 x5WebViewStatus = X5WebViewStatus.NOT_FOUND
                 return false
             }
