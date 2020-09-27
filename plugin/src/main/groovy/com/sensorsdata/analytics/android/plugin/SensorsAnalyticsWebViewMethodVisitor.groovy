@@ -19,58 +19,98 @@ package com.sensorsdata.analytics.android.plugin
 
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import org.objectweb.asm.commons.AdviceAdapter
 
-class SensorsAnalyticsWebViewMethodVisitor extends MethodVisitor implements Opcodes {
+/**
+ * 判断逻辑：
+ *
+ * 如果当前方法所在的类是 WebView 的子类，并且被处理的方法是目标方法中的一个就不处理；
+ * 否则就判断 owner 是否是 WebView 的子类，如果是就处理，否则不处理。
+ */
+class SensorsAnalyticsWebViewMethodVisitor extends AdviceAdapter implements Opcodes {
 
     private SensorsAnalyticsTransformHelper transformHelper
     private Class webView
     private Class x5WebView
     private boolean isPreviousX5WebView = false
     private static X5WebViewStatus x5WebViewStatus = X5WebViewStatus.NOT_INITIAL
-    private static final def TARGET_NAME_DESC = ["loadUrl(Ljava/lang/String;)V", "loadUrl(Ljava/lang/String;Ljava/util/Map;)V",
-                                                 "loadData(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
-                                                 "loadDataWithBaseURL(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
-                                                 "postUrl(Ljava/lang/String;[B)V"]
-    private static final def VIEW_DESC = "Landroid/view/View;"
-    private static final def OWNER_WHITE_SET = new HashSet(["android/webkit/WebView", "com/tencent/smtt/sdk/WebView"])
+    //目标方法
+    private static final List<String> TARGET_NAME_DESC = ["loadUrl(Ljava/lang/String;)V", "loadUrl(Ljava/lang/String;Ljava/util/Map;)V",
+                                                          "loadData(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+                                                          "loadDataWithBaseURL(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+                                                          "postUrl(Ljava/lang/String;[B)V"]
+    private static final String VIEW_DESC = "Landroid/view/View;"
+    private static final HashSet OWNER_WHITE_SET = new HashSet(["android/webkit/WebView", "com/tencent/smtt/sdk/WebView"])
     private String className
     private String superName
+    private String methodNameDesc
+    private boolean shouldSkip = false
 
-
-    SensorsAnalyticsWebViewMethodVisitor(MethodVisitor mv, SensorsAnalyticsTransformHelper transformHelper, String className, String superName) {
-        super(SensorsAnalyticsUtil.ASM_VERSION, mv)
+    SensorsAnalyticsWebViewMethodVisitor(MethodVisitor mv, int access, String name, String desc, SensorsAnalyticsTransformHelper transformHelper, String className, String superName) {
+        super(SensorsAnalyticsUtil.ASM_VERSION, mv, access, name, desc)
         this.transformHelper = transformHelper
         this.className = className
         this.superName = superName
+        this.methodNameDesc = name + desc
+        //如果当前方法符合目标定义，而且此类是 WebView 的子类，那么就跳过 visitMethodInsn 的指令
+        if (TARGET_NAME_DESC.contains(methodNameDesc) && isAssignableWebView(className)) {
+            shouldSkip = true
+        }
     }
 
     @Override
     void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-        if (TARGET_NAME_DESC.contains(name + desc)) {
-            if (!checkWebViewChild(className)) {
+        if (shouldSkip) {
+            super.visitMethodInsn(opcode, owner, name, desc, itf)
+            return
+        }
+        try {
+            if (opcode != INVOKESTATIC && TARGET_NAME_DESC.contains(name + desc)) {
+                // 解决 NoClassDefError 问题
+                if (superName == "com/tencent/smtt/sdk/WebViewClient") {
+                    super.visitMethodInsn(opcode, owner, name, desc, itf)
+                    return
+                }
                 if (isAssignableWebView(owner)) {
-                    opcode = INVOKESTATIC
-                    owner = SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API
+                    Type[] argTypes = Type.getArgumentTypes(desc)
+                    List<Integer> positionList = new ArrayList<>()
+                    //依次复制操作数栈顶的元素到局部变量表中保存
+                    for (int index = 0; index < argTypes.length; index++) {
+                        int position = newLocal(argTypes[index])
+                        storeLocal(position)
+                        positionList.add(position)
+                    }
+                    int ownerPosition = newLocal(Type.getObjectType(owner))
+                    storeLocal(ownerPosition)
+                    positionList.add(ownerPosition)
+                    //将局部变量表中的数据压入操作数栈中触发原有的方法
+                    positionList.reverseEach { tmp ->
+                        loadLocal(tmp)
+                    }
+                    super.visitMethodInsn(opcode, owner, name, desc, itf)
+                    //将局部变量表中的数据压入操作数栈中触发我们需要插入的方法
+                    positionList.reverseEach { tmp ->
+                        loadLocal(tmp)
+                    }
                     desc = reStructureDesc(desc)
+                    //为保持新 SDK 使用旧版插件问题，会使用新 SDK loadUrl + 2 后缀的方法
+                    mv.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, name + "2", desc, false)
+                    return
                 }
             }
+        } catch (Throwable throwable) {
+            Logger.warn("Can not auto handle webview, if you have any questions, please contact our technical services: classname:${className}, method:${methodNameDesc}, exception: ${throwable}")
         }
         super.visitMethodInsn(opcode, owner, name, desc, itf)
     }
 
     /**
-     * 判断是否是 WebView 的子类，避免 WebView 子类中调用 load* 方法，导致的递归调用
+     * 判断方法的 owner 是否是 WebView 的子类
      *
-     * @param className 当前被处理的类
-     * @return true 是 WebView 的子类，false 非 WebView 子类
+     * @param owner
+     * @return true 表示是 WebView 的子类，否则不是
      */
-    private boolean checkWebViewChild(String className) {
-        if (superName == "com/tencent/smtt/sdk/WebViewClient") {
-            return false
-        }
-        isAssignableWebView(className)
-    }
-
     private boolean isAssignableWebView(String owner) {
         try {
             if (OWNER_WHITE_SET.contains(owner)) {

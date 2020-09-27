@@ -173,7 +173,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
 
         MethodVisitor methodVisitor = cv.visitMethod(access, name, desc, signature, exceptions)
         if (transformHelper.extension != null && transformHelper.extension.autoHandleWebView && transformHelper.urlClassLoader != null) {
-            methodVisitor = new SensorsAnalyticsWebViewMethodVisitor(methodVisitor, transformHelper, mClassName, mSuperName)
+            methodVisitor = new SensorsAnalyticsWebViewMethodVisitor(methodVisitor, access, name, desc, transformHelper, mClassName, mSuperName)
         }
         SensorsAnalyticsDefaultMethodVisitor sensorsAnalyticsDefaultMethodVisitor = new SensorsAnalyticsDefaultMethodVisitor(methodVisitor, access, name, desc) {
             boolean isSensorsDataTrackViewOnClickAnnotation = false

@@ -33,7 +33,6 @@ import groovy.io.FileType
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
-import org.apache.commons.io.output.ByteArrayOutputStream
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
@@ -46,8 +45,8 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.2.11"
-    public static final String MIN_SDK_VERSION = "4.0.7"
+    public static final String VERSION = "3.2.12"
+    public static final String MIN_SDK_VERSION = "4.3.2"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
 
@@ -311,6 +310,10 @@ class SensorsAnalyticsTransform extends Transform {
     }
 
     private File modifyJar(File jarFile, File tempDir, boolean isNameHex) {
+        //FIX: ZipException: zip file is empty
+        if (jarFile == null || jarFile.length() == 0) {
+            return null
+        }
         //取原 jar, verify 参数传 false, 代表对 jar 包不进行签名校验
         def file = new JarFile(jarFile, false)
         //设置输出到的 jar
