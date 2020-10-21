@@ -193,17 +193,20 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
             //访问权限是public并且非静态
             boolean pubAndNoStaticAccess
             ArrayList<Integer> localIds
+            boolean shouldAddUCJS = false
 
             @Override
             void visitEnd() {
                 super.visitEnd()
-
                 if (isHasTracked) {
                     if (transformHelper.extension.lambdaEnabled && mLambdaMethodCells.containsKey(nameDesc)) {
                         mLambdaMethodCells.remove(nameDesc)
                     }
                     visitAnnotation("Lcom/sensorsdata/analytics/android/sdk/SensorsDataInstrumented;", false)
                     Logger.info("Hooked method: ${name}${desc}\n")
+                }
+                if (shouldAddUCJS) {
+                    visitAnnotation("Lcom/uc/webview/export/JavascriptInterface;", true)
                 }
             }
 
@@ -278,6 +281,12 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     methodVisitor.visitVarInsn(ILOAD, 2)
                     methodVisitor.visitVarInsn(ISTORE, secondLocalId)
                     localIds.add(secondLocalId)
+                } else if (nameDesc == "onCheckedChanged(Landroid/widget/CompoundButton;Z)V" && pubAndNoStaticAccess) {
+                    localIds = new ArrayList<>()
+                    int firstLocalId = newLocal(Type.getObjectType("android/widget/CompoundButton"))
+                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                    localIds.add(firstLocalId)
                 } else if (nameDesc == "onClick(Landroid/content/DialogInterface;I)V" && pubAndNoStaticAccess) {
                     localIds = new ArrayList<>()
                     int firstLocalId = newLocal(Type.getObjectType("android/content/DialogInterface"))
@@ -521,6 +530,16 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                             isHasTracked = true
                             return
                         }
+                    } else if (mInterfaces.contains('android/widget/CompoundButton$OnCheckedChangeListener')
+                            && nameDesc == 'onCheckedChanged(Landroid/widget/CompoundButton;Z)V') {
+                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS
+                                .get('android/widget/CompoundButton$OnCheckedChangeListeneronCheckedChanged(Landroid/widget/CompoundButton;Z)V')
+                        if (sensorsAnalyticsMethodCell != null) {
+                            methodVisitor.visitVarInsn(ALOAD, localIds.get(0))
+                            methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
+                            isHasTracked = true
+                            return
+                        }
                     } else if (mInterfaces.contains('android/content/DialogInterface$OnClickListener')
                             && nameDesc == 'onClick(Landroid/content/DialogInterface;I)V') {
                         SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS
@@ -641,6 +660,8 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                             }
                         }
                     }
+                } else if (classNameAnalytics.isAppWebViewInterface && transformHelper.extension.addUCJavaScriptInterface && s == "Landroid/webkit/JavascriptInterface;") {
+                    shouldAddUCJS = true
                 }
 
                 return super.visitAnnotation(s, b)

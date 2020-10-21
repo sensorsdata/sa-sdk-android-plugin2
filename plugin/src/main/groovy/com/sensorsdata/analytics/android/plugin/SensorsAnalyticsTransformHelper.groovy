@@ -97,7 +97,7 @@ class SensorsAnalyticsTransformHelper {
                         classNameAnalytics.methodCells.addAll(methodCellList)
                     }
             }
-            if (classNameAnalytics.methodCells.size() > 0 || classNameAnalytics.isSensorsDataAPI) {
+            if (classNameAnalytics.methodCells.size() > 0 || classNameAnalytics.isSensorsDataAPI || (classNameAnalytics.isAppWebViewInterface && extension.addUCJavaScriptInterface)) {
                 classNameAnalytics.isShouldModify = true
             }
         } else if (!classNameAnalytics.isAndroidGenerated()) {

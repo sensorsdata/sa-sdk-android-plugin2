@@ -299,6 +299,14 @@ class SensorsAnalyticsHookConfig {
                 '(Landroid/view/View;)V',
                 1, 1,
                 [Opcodes.ALOAD]))
+        SAMPLING_LAMBDA_METHODS.add(new SensorsAnalyticsMethodCell(
+                'onClick',
+                '(Landroid/view/View;)V',
+                'Landroid/view/View$OnClickListener;',
+                'trackViewOnClick',
+                '(Landroid/view/View;)V',
+                1, 1,
+                [Opcodes.ALOAD]))
         addLambdaMethod(new SensorsAnalyticsMethodCell(
                 'onCheckedChanged',
                 '(Landroid/widget/CompoundButton;Z)V',
@@ -316,6 +324,14 @@ class SensorsAnalyticsHookConfig {
                 1, 1,
                 [Opcodes.ALOAD]))
         addLambdaMethod(new SensorsAnalyticsMethodCell(
+                'onCheckedChanged',
+                '(Landroid/widget/RadioGroup;I)V',
+                'Landroid/widget/RadioGroup$OnCheckedChangeListener;',
+                'trackRadioGroup',
+                '(Landroid/widget/RadioGroup;I)V',
+                1, 2,
+                [Opcodes.ALOAD, Opcodes.ILOAD]))
+        SAMPLING_LAMBDA_METHODS.add(new SensorsAnalyticsMethodCell(
                 'onCheckedChanged',
                 '(Landroid/widget/RadioGroup;I)V',
                 'Landroid/widget/RadioGroup$OnCheckedChangeListener;',

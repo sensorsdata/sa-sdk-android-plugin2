@@ -24,16 +24,18 @@ class ClassNameAnalytics {
     boolean isSensorsDataUtils = false
     boolean isSALog = false
     def methodCells = new ArrayList<SensorsAnalyticsMethodCell>()
+    boolean isAppWebViewInterface = false
 
     ClassNameAnalytics(String className) {
         this.className = className
         isSensorsDataAPI = (className == 'com.sensorsdata.analytics.android.sdk.SensorsDataAPI')
         isSensorsDataUtils = (className == 'com.sensorsdata.analytics.android.sdk.util.SensorsDataUtils')
         isSALog = (className == 'com.sensorsdata.analytics.android.sdk.SALog')
+        isAppWebViewInterface = (className == 'com.sensorsdata.analytics.android.sdk.AppWebViewInterface')
     }
 
     boolean isSDKFile() {
-        return isSALog || isSensorsDataAPI || isSensorsDataUtils
+        return isSALog || isSensorsDataAPI || isSensorsDataUtils || isAppWebViewInterface
     }
 
     boolean isLeanback() {
