@@ -152,6 +152,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         }
         return super.visitField(access, name, descriptor, signature, value)
     }
+
     /**
      * 该方法是当扫描器扫描到类的方法时进行调用
      * @param access 表示方法的修饰符
@@ -357,6 +358,14 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 if (!transformHelper.isHookOnMethodEnter) {
                     handleCode()
                 }
+            }
+
+            @Override
+            void visitFieldInsn(int opcode, String owner, String fieldName, String fieldDesc) {
+                if (classNameAnalytics.isSensorsDataAPI && "ANDROID_PLUGIN_VERSION" == fieldName && opcode == PUTSTATIC) {
+                    methodVisitor.visitLdcInsn(SensorsAnalyticsTransform.VERSION)
+                }
+                super.visitFieldInsn(opcode, owner, fieldName, fieldDesc)
             }
 
             void handleCode() {
