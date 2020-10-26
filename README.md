@@ -1,9 +1,5 @@
 ![logo](https://opensource.sensorsdata.cn/wp-content/uploads/logo.png)
 
-# sa-sdk-android-plugin2
-
-The official Android SDK Plugin for Sensors Analytics
-
 ## 神策简介
 
 [**神策数据**](https://www.sensorsdata.cn/)
