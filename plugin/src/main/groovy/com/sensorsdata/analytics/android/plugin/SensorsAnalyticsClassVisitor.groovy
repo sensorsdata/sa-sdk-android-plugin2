@@ -257,21 +257,17 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     methodVisitor.visitVarInsn(ILOAD, 3)
                     methodVisitor.visitVarInsn(ISTORE, third)
                     localIds.add(third)
-                } else if (nameDesc == 'setUserVisibleHint(Z)V' && pubAndNoStaticAccess) {
-                    isSetUserVisibleHint = true
-                    variableID = newLocal(Type.getObjectType("java/lang/Integer"))
-                    methodVisitor.visitVarInsn(ILOAD, 1)
-                    methodVisitor.visitVarInsn(ISTORE, variableID)
-                } else if (nameDesc == 'onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V' && pubAndNoStaticAccess) {
+                } else if (pubAndNoStaticAccess && SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)
+                        && SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc) != null) {
+                    SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc)
                     localIds = new ArrayList<>()
-                    int localId = newLocal(Type.getObjectType("java/lang/Integer"))
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ASTORE, localId)
-                    localIds.add(localId)
-                    localId = newLocal(Type.getObjectType("java/lang/Integer"))
-                    methodVisitor.visitVarInsn(ALOAD, 2)
-                    methodVisitor.visitVarInsn(ASTORE, localId)
-                    localIds.add(localId)
+                    Type[] types = Type.getArgumentTypes(desc)
+                    for (int i = 1; i < sensorsAnalyticsMethodCell.paramsCount; i++) {
+                        int localId = newLocal(types[i - 1])
+                        methodVisitor.visitVarInsn(sensorsAnalyticsMethodCell.opcodes.get(i), i)
+                        methodVisitor.visitVarInsn(SensorsAnalyticsUtil.convertOpcodes(sensorsAnalyticsMethodCell.opcodes.get(i)), localId)
+                        localIds.add(localId)
+                    }
                 } else if (nameDesc == "onCheckedChanged(Landroid/widget/RadioGroup;I)V" && pubAndNoStaticAccess) {
                     localIds = new ArrayList<>()
                     int firstLocalId = newLocal(Type.getObjectType("android/widget/RadioGroup"))
@@ -308,19 +304,16 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     methodVisitor.visitVarInsn(ALOAD, 1)
                     methodVisitor.visitVarInsn(ASTORE, secondLocalId)
                     localIds.add(secondLocalId)
-                } else if (!transformHelper.isHookOnMethodEnter && nameDesc == "onMenuItemClick(Landroid/view/MenuItem;)Z" && pubAndNoStaticAccess) {
+                } else if (nameDesc == "onMenuItemClick(Landroid/view/MenuItem;)Z" && pubAndNoStaticAccess) {
                     localIds = new ArrayList<>()
                     int firstLocalId = newLocal(Type.getObjectType("android/view/MenuItem"))
                     methodVisitor.visitVarInsn(ALOAD, 1)
                     methodVisitor.visitVarInsn(ASTORE, firstLocalId)
                     localIds.add(firstLocalId)
                 }
-                if (transformHelper.isHookOnMethodEnter) {
-                    handleCode()
-                }
 
                 // Lambda 参数优化部分，对现有参数进行复制
-                if (!transformHelper.isHookOnMethodEnter && transformHelper.extension.lambdaEnabled) {
+                if (transformHelper.extension.lambdaEnabled) {
                     SensorsAnalyticsMethodCell lambdaMethodCell = mLambdaMethodCells.get(nameDesc)
                     if (lambdaMethodCell != null) {
                         //判断是否是在采样中，在采样中才会处理或者开关打开也统一处理
@@ -349,6 +342,10 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                             }
                         }
                     }
+                }
+
+                if (transformHelper.isHookOnMethodEnter) {
+                    handleCode()
                 }
             }
 
@@ -384,19 +381,11 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc)
                     if (sensorsAnalyticsMethodCell != null) {
                         visitedFragMethods.add(nameDesc)
-                        if (isSetUserVisibleHint) {
-                            methodVisitor.visitVarInsn(ALOAD, 0)
-                            methodVisitor.visitVarInsn(ILOAD, variableID)
-                            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
-                        } else if (localIds != null) {
-                            methodVisitor.visitVarInsn(ALOAD, 0)
-                            for (localId in localIds) {
-                                methodVisitor.visitVarInsn(ALOAD, localId)
-                            }
-                            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
-                        } else {
-                            visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, sensorsAnalyticsMethodCell.paramsStart, sensorsAnalyticsMethodCell.paramsCount, sensorsAnalyticsMethodCell.opcodes)
+                        methodVisitor.visitVarInsn(ALOAD, 0)
+                        for (int i = 1; i < sensorsAnalyticsMethodCell.paramsCount; i++) {
+                            methodVisitor.visitVarInsn(sensorsAnalyticsMethodCell.opcodes.get(i), localIds[i - 1])
                         }
+                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
                         isHasTracked = true
                         return
                     }
