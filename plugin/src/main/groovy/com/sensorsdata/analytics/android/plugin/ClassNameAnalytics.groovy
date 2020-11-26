@@ -31,7 +31,8 @@ class ClassNameAnalytics {
         isSensorsDataAPI = (className == 'com.sensorsdata.analytics.android.sdk.SensorsDataAPI')
         isSensorsDataUtils = (className == 'com.sensorsdata.analytics.android.sdk.util.SensorsDataUtils')
         isSALog = (className == 'com.sensorsdata.analytics.android.sdk.SALog')
-        isAppWebViewInterface = (className == 'com.sensorsdata.analytics.android.sdk.AppWebViewInterface')
+        isAppWebViewInterface = ((className == 'com.sensorsdata.analytics.android.sdk.AppWebViewInterface')
+                || (className == 'com.sensorsdata.analytics.android.sdk.visual.WebViewVisualInterface'))
     }
 
     boolean isSDKFile() {
