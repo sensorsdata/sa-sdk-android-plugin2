@@ -17,6 +17,7 @@
 package com.sensorsdata.analytics.android.plugin
 
 
+import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -89,13 +90,18 @@ class SensorsAnalyticsWebViewMethodVisitor extends AdviceAdapter implements Opco
                         loadLocal(tmp)
                     }
                     super.visitMethodInsn(opcode, owner, name, desc, itf)
-                    //将局部变量表中的数据压入操作数栈中触发我们需要插入的方法
-                    positionList.reverseEach { tmp ->
-                        loadLocal(tmp)
+                    //处理 Dcloud 中 WebView 的写法，缩小范围为 AdaWebView
+                    if (isDCloud(owner, className)) {
+                        hookDCloud(positionList, name, desc)
+                    } else {
+                        //将局部变量表中的数据压入操作数栈中触发我们需要插入的方法
+                        positionList.reverseEach { tmp ->
+                            loadLocal(tmp)
+                        }
+                        desc = reStructureDesc(desc)
+                        //为保持新 SDK 使用旧版插件问题，会使用新 SDK loadUrl + 2 后缀的方法
+                        mv.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, name + "2", desc, false)
                     }
-                    desc = reStructureDesc(desc)
-                    //为保持新 SDK 使用旧版插件问题，会使用新 SDK loadUrl + 2 后缀的方法
-                    mv.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, name + "2", desc, false)
                     return
                 }
             }
@@ -103,6 +109,30 @@ class SensorsAnalyticsWebViewMethodVisitor extends AdviceAdapter implements Opco
             Logger.warn("Can not auto handle webview, if you have any questions, please contact our technical services: classname:${className}, method:${methodNameDesc}, exception: ${throwable}")
         }
         super.visitMethodInsn(opcode, owner, name, desc, itf)
+    }
+
+    private boolean isDCloud(String owner, String className) {
+        return owner == "io/dcloud/common/adapter/ui/webview/DCWebView" && className.contains("AdaWebview")
+    }
+
+    private void hookDCloud(List<Integer> positionList, String name, String desc) {
+        boolean isCask = false
+        int tmpPosition = positionList.last()
+        loadLocal(tmpPosition)
+        mv.visitTypeInsn(INSTANCEOF, "android/view/View")
+        Label label = new Label()
+        mv.visitJumpInsn(IFEQ, label)
+        positionList.reverseEach { tmp ->
+            loadLocal(tmp)
+            if (!isCask) {
+                isCask = true
+                mv.visitTypeInsn(CHECKCAST, "android/view/View")
+            }
+        }
+        desc = reStructureDesc(desc)
+        //为保持新 SDK 使用旧版插件问题，会使用新 SDK loadUrl + 2 后缀的方法
+        mv.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, name + "2", desc, false)
+        mv.visitLabel(label)
     }
 
     /**
@@ -114,6 +144,9 @@ class SensorsAnalyticsWebViewMethodVisitor extends AdviceAdapter implements Opco
     private boolean isAssignableWebView(String owner) {
         try {
             if (OWNER_WHITE_SET.contains(owner)) {
+                return true
+            }
+            if (isDCloud(owner, className)) {
                 return true
             }
             Class ownerClass = transformHelper.urlClassLoader.loadClass(owner.replace("/", "."))
