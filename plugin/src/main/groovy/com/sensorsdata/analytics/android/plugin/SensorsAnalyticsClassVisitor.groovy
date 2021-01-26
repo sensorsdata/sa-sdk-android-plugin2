@@ -1,6 +1,6 @@
 /*
  * Created by wangzhuohou on 2015/08/01.
- * Copyright 2015－2020 Sensors Data Inc.
+ * Copyright 2015－2021 Sensors Data Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -310,6 +310,60 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     methodVisitor.visitVarInsn(ALOAD, 1)
                     methodVisitor.visitVarInsn(ASTORE, firstLocalId)
                     localIds.add(firstLocalId)
+                } else if (nameDesc == "onGroupClick(Landroid/widget/ExpandableListView;Landroid/view/View;IJ)Z") {
+                    localIds = new ArrayList<>()
+                    int firstLocalId = newLocal(Type.getObjectType("android/widget/ExpandableListView"))
+                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                    localIds.add(firstLocalId)
+
+                    int secondLocalId = newLocal(Type.getObjectType("android/view/View"))
+                    methodVisitor.visitVarInsn(ALOAD, 2)
+                    methodVisitor.visitVarInsn(ASTORE, secondLocalId)
+                    localIds.add(secondLocalId)
+
+                    int thirdLocalId = newLocal(Type.INT_TYPE)
+                    methodVisitor.visitVarInsn(ILOAD, 3)
+                    methodVisitor.visitVarInsn(ISTORE, thirdLocalId)
+                    localIds.add(thirdLocalId)
+                } else if (nameDesc == "onChildClick(Landroid/widget/ExpandableListView;Landroid/view/View;IIJ)Z") {
+                    localIds = new ArrayList<>()
+                    int firstLocalId = newLocal(Type.getObjectType("android/widget/ExpandableListView"))
+                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                    localIds.add(firstLocalId)
+
+                    int secondLocalId = newLocal(Type.getObjectType("android/view/View"))
+                    methodVisitor.visitVarInsn(ALOAD, 2)
+                    methodVisitor.visitVarInsn(ASTORE, secondLocalId)
+                    localIds.add(secondLocalId)
+
+                    int thirdLocalId = newLocal(Type.INT_TYPE)
+                    methodVisitor.visitVarInsn(ILOAD, 3)
+                    methodVisitor.visitVarInsn(ISTORE, thirdLocalId)
+                    localIds.add(thirdLocalId)
+
+                    int fourthLocalId = newLocal(Type.INT_TYPE)
+                    methodVisitor.visitVarInsn(ILOAD, 4)
+                    methodVisitor.visitVarInsn(ISTORE, fourthLocalId)
+                    localIds.add(fourthLocalId)
+                } else if (nameDesc == "onItemSelected(Landroid/widget/AdapterView;Landroid/view/View;IJ)V"
+                        || nameDesc == "onListItemClick(Landroid/widget/ListView;Landroid/view/View;IJ)V") {
+                    localIds = new ArrayList<>()
+                    int firstLocalId = newLocal(Type.getObjectType("java/lang/Object"))
+                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                    localIds.add(firstLocalId)
+
+                    int secondLocalId = newLocal(Type.getObjectType("android/view/View"))
+                    methodVisitor.visitVarInsn(ALOAD, 2)
+                    methodVisitor.visitVarInsn(ASTORE, secondLocalId)
+                    localIds.add(secondLocalId)
+
+                    int thirdLocalId = newLocal(Type.INT_TYPE)
+                    methodVisitor.visitVarInsn(ILOAD, 3)
+                    methodVisitor.visitVarInsn(ISTORE, thirdLocalId)
+                    localIds.add(thirdLocalId)
                 }
 
                 // Lambda 参数优化部分，对现有参数进行复制
@@ -487,9 +541,9 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 }
 
                 if (nameDesc == 'onItemSelected(Landroid/widget/AdapterView;Landroid/view/View;IJ)V' || nameDesc == "onListItemClick(Landroid/widget/ListView;Landroid/view/View;IJ)V") {
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ALOAD, 2)
-                    methodVisitor.visitVarInsn(ILOAD, 3)
+                    methodVisitor.visitVarInsn(ALOAD, localIds.get(0))
+                    methodVisitor.visitVarInsn(ALOAD, localIds.get(1))
+                    methodVisitor.visitVarInsn(ILOAD, localIds.get(2))
                     methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackListView", "(Landroid/widget/AdapterView;Landroid/view/View;I)V", false)
                     isHasTracked = true
                     return
@@ -545,6 +599,31 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                         if (sensorsAnalyticsMethodCell != null) {
                             methodVisitor.visitVarInsn(ALOAD, localIds.get(0))
                             methodVisitor.visitVarInsn(ILOAD, localIds.get(1))
+                            methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
+                            isHasTracked = true
+                            return
+                        }
+                    } else if (mInterfaces.contains('android/widget/ExpandableListView$OnGroupClickListener')
+                            && nameDesc == 'onGroupClick(Landroid/widget/ExpandableListView;Landroid/view/View;IJ)Z') {
+                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS
+                                .get('android/widget/ExpandableListView$OnGroupClickListeneronGroupClick(Landroid/widget/ExpandableListView;Landroid/view/View;IJ)Z')
+                        if (sensorsAnalyticsMethodCell != null) {
+                            methodVisitor.visitVarInsn(ALOAD, localIds.get(0))
+                            methodVisitor.visitVarInsn(ALOAD, localIds.get(1))
+                            methodVisitor.visitVarInsn(ILOAD, localIds.get(2))
+                            methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
+                            isHasTracked = true
+                            return
+                        }
+                    } else if (mInterfaces.contains('android/widget/ExpandableListView$OnChildClickListener')
+                            && nameDesc == 'onChildClick(Landroid/widget/ExpandableListView;Landroid/view/View;IIJ)Z') {
+                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS
+                                .get('android/widget/ExpandableListView$OnChildClickListeneronChildClick(Landroid/widget/ExpandableListView;Landroid/view/View;IIJ)Z')
+                        if (sensorsAnalyticsMethodCell != null) {
+                            methodVisitor.visitVarInsn(ALOAD, localIds.get(0))
+                            methodVisitor.visitVarInsn(ALOAD, localIds.get(1))
+                            methodVisitor.visitVarInsn(ILOAD, localIds.get(2))
+                            methodVisitor.visitVarInsn(ILOAD, localIds.get(3))
                             methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
                             isHasTracked = true
                             return

@@ -1,6 +1,6 @@
 /*
  * Created by wangzhuozhou on 2015/08/12.
- * Copyright 2015－2020 Sensors Data Inc.
+ * Copyright 2015－2021 Sensors Data Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.3.1"
+    public static final String VERSION = "3.3.2"
     public static final String MIN_SDK_VERSION = "4.3.2"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
