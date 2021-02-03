@@ -193,6 +193,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
 
             //访问权限是public并且非静态
             boolean pubAndNoStaticAccess
+            boolean protectedAndNotStaticAccess
             ArrayList<Integer> localIds
             boolean shouldAddUCJS = false
 
@@ -234,136 +235,157 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 super.onMethodEnter()
                 nameDesc = name + desc
                 pubAndNoStaticAccess = SensorsAnalyticsUtil.isPublic(access) && !SensorsAnalyticsUtil.isStatic(access)
-                if ((nameDesc == 'onClick(Landroid/view/View;)V') && pubAndNoStaticAccess) {
-                    isOnClickMethod = true
-                    variableID = newLocal(Type.getObjectType("java/lang/Integer"))
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ASTORE, variableID)
-                } else if (nameDesc == 'onItemClick(Landroid/widget/AdapterView;Landroid/view/View;IJ)V' && pubAndNoStaticAccess) {
-                    localIds = new ArrayList<>()
-                    isOnItemClickMethod = true
+                protectedAndNotStaticAccess = SensorsAnalyticsUtil.isProtected(access) && !SensorsAnalyticsUtil.isStatic(access)
+                if (pubAndNoStaticAccess) {
+                    if ((nameDesc == 'onClick(Landroid/view/View;)V')) {
+                        isOnClickMethod = true
+                        variableID = newLocal(Type.getObjectType("java/lang/Integer"))
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitVarInsn(ASTORE, variableID)
+                    } else if (nameDesc == 'onItemClick(Landroid/widget/AdapterView;Landroid/view/View;IJ)V') {
+                        localIds = new ArrayList<>()
+                        isOnItemClickMethod = true
 
-                    int first = newLocal(Type.getObjectType("android/widget/AdapterView"))
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ASTORE, first)
-                    localIds.add(first)
+                        int first = newLocal(Type.getObjectType("android/widget/AdapterView"))
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitVarInsn(ASTORE, first)
+                        localIds.add(first)
 
-                    int second = newLocal(Type.getObjectType("android/view/View"))
-                    methodVisitor.visitVarInsn(ALOAD, 2)
-                    methodVisitor.visitVarInsn(ASTORE, second)
-                    localIds.add(second)
+                        int second = newLocal(Type.getObjectType("android/view/View"))
+                        methodVisitor.visitVarInsn(ALOAD, 2)
+                        methodVisitor.visitVarInsn(ASTORE, second)
+                        localIds.add(second)
 
-                    int third = newLocal(Type.INT_TYPE)
-                    methodVisitor.visitVarInsn(ILOAD, 3)
-                    methodVisitor.visitVarInsn(ISTORE, third)
-                    localIds.add(third)
-                } else if (pubAndNoStaticAccess && SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)
-                        && SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc) != null) {
-                    SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc)
-                    localIds = new ArrayList<>()
-                    Type[] types = Type.getArgumentTypes(desc)
-                    for (int i = 1; i < sensorsAnalyticsMethodCell.paramsCount; i++) {
-                        int localId = newLocal(types[i - 1])
-                        methodVisitor.visitVarInsn(sensorsAnalyticsMethodCell.opcodes.get(i), i)
-                        methodVisitor.visitVarInsn(SensorsAnalyticsUtil.convertOpcodes(sensorsAnalyticsMethodCell.opcodes.get(i)), localId)
-                        localIds.add(localId)
+                        int third = newLocal(Type.INT_TYPE)
+                        methodVisitor.visitVarInsn(ILOAD, 3)
+                        methodVisitor.visitVarInsn(ISTORE, third)
+                        localIds.add(third)
+                    } else if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)
+                            && SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc) != null) {
+                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc)
+                        localIds = new ArrayList<>()
+                        Type[] types = Type.getArgumentTypes(desc)
+                        for (int i = 1; i < sensorsAnalyticsMethodCell.paramsCount; i++) {
+                            int localId = newLocal(types[i - 1])
+                            methodVisitor.visitVarInsn(sensorsAnalyticsMethodCell.opcodes.get(i), i)
+                            methodVisitor.visitVarInsn(SensorsAnalyticsUtil.convertOpcodes(sensorsAnalyticsMethodCell.opcodes.get(i)), localId)
+                            localIds.add(localId)
+                        }
+                    } else if (nameDesc == "onCheckedChanged(Landroid/widget/RadioGroup;I)V") {
+                        localIds = new ArrayList<>()
+                        int firstLocalId = newLocal(Type.getObjectType("android/widget/RadioGroup"))
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                        localIds.add(firstLocalId)
+                        int secondLocalId = newLocal(Type.INT_TYPE)
+                        methodVisitor.visitVarInsn(ILOAD, 2)
+                        methodVisitor.visitVarInsn(ISTORE, secondLocalId)
+                        localIds.add(secondLocalId)
+                    } else if (nameDesc == "onCheckedChanged(Landroid/widget/CompoundButton;Z)V") {
+                        localIds = new ArrayList<>()
+                        int firstLocalId = newLocal(Type.getObjectType("android/widget/CompoundButton"))
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                        localIds.add(firstLocalId)
+                    } else if (nameDesc == "onClick(Landroid/content/DialogInterface;I)V") {
+                        localIds = new ArrayList<>()
+                        int firstLocalId = newLocal(Type.getObjectType("android/content/DialogInterface"))
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                        localIds.add(firstLocalId)
+                        int secondLocalId = newLocal(Type.INT_TYPE)
+                        methodVisitor.visitVarInsn(ILOAD, 2)
+                        methodVisitor.visitVarInsn(ISTORE, secondLocalId)
+                        localIds.add(secondLocalId)
+                    } else if (SensorsAnalyticsUtil.isTargetMenuMethodDesc(nameDesc)) {
+                        localIds = new ArrayList<>()
+                        int firstLocalId = newLocal(Type.getObjectType("java/lang/Object"))
+                        methodVisitor.visitVarInsn(ALOAD, 0)
+                        methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                        localIds.add(firstLocalId)
+                        int secondLocalId = newLocal(Type.getObjectType("android/view/MenuItem"))
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitVarInsn(ASTORE, secondLocalId)
+                        localIds.add(secondLocalId)
+                    } else if (nameDesc == "onMenuItemClick(Landroid/view/MenuItem;)Z") {
+                        localIds = new ArrayList<>()
+                        int firstLocalId = newLocal(Type.getObjectType("android/view/MenuItem"))
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                        localIds.add(firstLocalId)
+                    } else if (nameDesc == "onGroupClick(Landroid/widget/ExpandableListView;Landroid/view/View;IJ)Z") {
+                        localIds = new ArrayList<>()
+                        int firstLocalId = newLocal(Type.getObjectType("android/widget/ExpandableListView"))
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                        localIds.add(firstLocalId)
+
+                        int secondLocalId = newLocal(Type.getObjectType("android/view/View"))
+                        methodVisitor.visitVarInsn(ALOAD, 2)
+                        methodVisitor.visitVarInsn(ASTORE, secondLocalId)
+                        localIds.add(secondLocalId)
+
+                        int thirdLocalId = newLocal(Type.INT_TYPE)
+                        methodVisitor.visitVarInsn(ILOAD, 3)
+                        methodVisitor.visitVarInsn(ISTORE, thirdLocalId)
+                        localIds.add(thirdLocalId)
+                    } else if (nameDesc == "onChildClick(Landroid/widget/ExpandableListView;Landroid/view/View;IIJ)Z") {
+                        localIds = new ArrayList<>()
+                        int firstLocalId = newLocal(Type.getObjectType("android/widget/ExpandableListView"))
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                        localIds.add(firstLocalId)
+
+                        int secondLocalId = newLocal(Type.getObjectType("android/view/View"))
+                        methodVisitor.visitVarInsn(ALOAD, 2)
+                        methodVisitor.visitVarInsn(ASTORE, secondLocalId)
+                        localIds.add(secondLocalId)
+
+                        int thirdLocalId = newLocal(Type.INT_TYPE)
+                        methodVisitor.visitVarInsn(ILOAD, 3)
+                        methodVisitor.visitVarInsn(ISTORE, thirdLocalId)
+                        localIds.add(thirdLocalId)
+
+                        int fourthLocalId = newLocal(Type.INT_TYPE)
+                        methodVisitor.visitVarInsn(ILOAD, 4)
+                        methodVisitor.visitVarInsn(ISTORE, fourthLocalId)
+                        localIds.add(fourthLocalId)
+                    } else if (nameDesc == "onItemSelected(Landroid/widget/AdapterView;Landroid/view/View;IJ)V"
+                            || nameDesc == "onListItemClick(Landroid/widget/ListView;Landroid/view/View;IJ)V") {
+                        localIds = new ArrayList<>()
+                        int firstLocalId = newLocal(Type.getObjectType("java/lang/Object"))
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                        localIds.add(firstLocalId)
+
+                        int secondLocalId = newLocal(Type.getObjectType("android/view/View"))
+                        methodVisitor.visitVarInsn(ALOAD, 2)
+                        methodVisitor.visitVarInsn(ASTORE, secondLocalId)
+                        localIds.add(secondLocalId)
+
+                        int thirdLocalId = newLocal(Type.INT_TYPE)
+                        methodVisitor.visitVarInsn(ILOAD, 3)
+                        methodVisitor.visitVarInsn(ISTORE, thirdLocalId)
+                        localIds.add(thirdLocalId)
                     }
-                } else if (nameDesc == "onCheckedChanged(Landroid/widget/RadioGroup;I)V" && pubAndNoStaticAccess) {
-                    localIds = new ArrayList<>()
-                    int firstLocalId = newLocal(Type.getObjectType("android/widget/RadioGroup"))
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
-                    localIds.add(firstLocalId)
-                    int secondLocalId = newLocal(Type.INT_TYPE)
-                    methodVisitor.visitVarInsn(ILOAD, 2)
-                    methodVisitor.visitVarInsn(ISTORE, secondLocalId)
-                    localIds.add(secondLocalId)
-                } else if (nameDesc == "onCheckedChanged(Landroid/widget/CompoundButton;Z)V" && pubAndNoStaticAccess) {
-                    localIds = new ArrayList<>()
-                    int firstLocalId = newLocal(Type.getObjectType("android/widget/CompoundButton"))
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
-                    localIds.add(firstLocalId)
-                } else if (nameDesc == "onClick(Landroid/content/DialogInterface;I)V" && pubAndNoStaticAccess) {
-                    localIds = new ArrayList<>()
-                    int firstLocalId = newLocal(Type.getObjectType("android/content/DialogInterface"))
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
-                    localIds.add(firstLocalId)
-                    int secondLocalId = newLocal(Type.INT_TYPE)
-                    methodVisitor.visitVarInsn(ILOAD, 2)
-                    methodVisitor.visitVarInsn(ISTORE, secondLocalId)
-                    localIds.add(secondLocalId)
-                } else if (SensorsAnalyticsUtil.isTargetMenuMethodDesc(nameDesc) && pubAndNoStaticAccess) {
-                    localIds = new ArrayList<>()
-                    int firstLocalId = newLocal(Type.getObjectType("java/lang/Object"))
-                    methodVisitor.visitVarInsn(ALOAD, 0)
-                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
-                    localIds.add(firstLocalId)
-                    int secondLocalId = newLocal(Type.getObjectType("android/view/MenuItem"))
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ASTORE, secondLocalId)
-                    localIds.add(secondLocalId)
-                } else if (nameDesc == "onMenuItemClick(Landroid/view/MenuItem;)Z" && pubAndNoStaticAccess) {
-                    localIds = new ArrayList<>()
-                    int firstLocalId = newLocal(Type.getObjectType("android/view/MenuItem"))
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
-                    localIds.add(firstLocalId)
-                } else if (nameDesc == "onGroupClick(Landroid/widget/ExpandableListView;Landroid/view/View;IJ)Z") {
-                    localIds = new ArrayList<>()
-                    int firstLocalId = newLocal(Type.getObjectType("android/widget/ExpandableListView"))
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
-                    localIds.add(firstLocalId)
+                } else if (protectedAndNotStaticAccess) {
+                    if (nameDesc == "onListItemClick(Landroid/widget/ListView;Landroid/view/View;IJ)V") {
+                        localIds = new ArrayList<>()
+                        int firstLocalId = newLocal(Type.getObjectType("java/lang/Object"))
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                        localIds.add(firstLocalId)
 
-                    int secondLocalId = newLocal(Type.getObjectType("android/view/View"))
-                    methodVisitor.visitVarInsn(ALOAD, 2)
-                    methodVisitor.visitVarInsn(ASTORE, secondLocalId)
-                    localIds.add(secondLocalId)
+                        int secondLocalId = newLocal(Type.getObjectType("android/view/View"))
+                        methodVisitor.visitVarInsn(ALOAD, 2)
+                        methodVisitor.visitVarInsn(ASTORE, secondLocalId)
+                        localIds.add(secondLocalId)
 
-                    int thirdLocalId = newLocal(Type.INT_TYPE)
-                    methodVisitor.visitVarInsn(ILOAD, 3)
-                    methodVisitor.visitVarInsn(ISTORE, thirdLocalId)
-                    localIds.add(thirdLocalId)
-                } else if (nameDesc == "onChildClick(Landroid/widget/ExpandableListView;Landroid/view/View;IIJ)Z") {
-                    localIds = new ArrayList<>()
-                    int firstLocalId = newLocal(Type.getObjectType("android/widget/ExpandableListView"))
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
-                    localIds.add(firstLocalId)
-
-                    int secondLocalId = newLocal(Type.getObjectType("android/view/View"))
-                    methodVisitor.visitVarInsn(ALOAD, 2)
-                    methodVisitor.visitVarInsn(ASTORE, secondLocalId)
-                    localIds.add(secondLocalId)
-
-                    int thirdLocalId = newLocal(Type.INT_TYPE)
-                    methodVisitor.visitVarInsn(ILOAD, 3)
-                    methodVisitor.visitVarInsn(ISTORE, thirdLocalId)
-                    localIds.add(thirdLocalId)
-
-                    int fourthLocalId = newLocal(Type.INT_TYPE)
-                    methodVisitor.visitVarInsn(ILOAD, 4)
-                    methodVisitor.visitVarInsn(ISTORE, fourthLocalId)
-                    localIds.add(fourthLocalId)
-                } else if (nameDesc == "onItemSelected(Landroid/widget/AdapterView;Landroid/view/View;IJ)V"
-                        || nameDesc == "onListItemClick(Landroid/widget/ListView;Landroid/view/View;IJ)V") {
-                    localIds = new ArrayList<>()
-                    int firstLocalId = newLocal(Type.getObjectType("java/lang/Object"))
-                    methodVisitor.visitVarInsn(ALOAD, 1)
-                    methodVisitor.visitVarInsn(ASTORE, firstLocalId)
-                    localIds.add(firstLocalId)
-
-                    int secondLocalId = newLocal(Type.getObjectType("android/view/View"))
-                    methodVisitor.visitVarInsn(ALOAD, 2)
-                    methodVisitor.visitVarInsn(ASTORE, secondLocalId)
-                    localIds.add(secondLocalId)
-
-                    int thirdLocalId = newLocal(Type.INT_TYPE)
-                    methodVisitor.visitVarInsn(ILOAD, 3)
-                    methodVisitor.visitVarInsn(ISTORE, thirdLocalId)
-                    localIds.add(thirdLocalId)
+                        int thirdLocalId = newLocal(Type.INT_TYPE)
+                        methodVisitor.visitVarInsn(ILOAD, 3)
+                        methodVisitor.visitVarInsn(ISTORE, thirdLocalId)
+                        localIds.add(thirdLocalId)
+                    }
                 }
 
                 // Lambda 参数优化部分，对现有参数进行复制
@@ -496,6 +518,17 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 }
 
                 if (!pubAndNoStaticAccess) {
+                    //如果是 protected 那么也需要处理
+                    if (protectedAndNotStaticAccess) {
+                        if (nameDesc == "onListItemClick(Landroid/widget/ListView;Landroid/view/View;IJ)V") {
+                            methodVisitor.visitVarInsn(ALOAD, localIds.get(0))
+                            methodVisitor.visitVarInsn(ALOAD, localIds.get(1))
+                            methodVisitor.visitVarInsn(ILOAD, localIds.get(2))
+                            methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackListView", "(Landroid/widget/AdapterView;Landroid/view/View;I)V", false)
+                            isHasTracked = true
+                            return
+                        }
+                    }
                     return
                 }
 

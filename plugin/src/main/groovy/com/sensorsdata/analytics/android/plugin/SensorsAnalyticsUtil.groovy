@@ -70,6 +70,10 @@ class SensorsAnalyticsUtil {
         return (access & Opcodes.ACC_STATIC) != 0
     }
 
+    static boolean isProtected(int access) {
+        return (access & Opcodes.ACC_PROTECTED) != 0
+    }
+
     static boolean isTargetMenuMethodDesc(String nameDesc) {
         return targetMenuMethodDesc.contains(nameDesc)
     }
