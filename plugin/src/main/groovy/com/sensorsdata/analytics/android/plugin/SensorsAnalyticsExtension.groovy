@@ -28,7 +28,7 @@ class SensorsAnalyticsExtension {
     public boolean autoHandleWebView = true
     public boolean addUCJavaScriptInterface = false
     public boolean lambdaParamOptimize = false
-
+    public boolean disableTrackPush = false
     public ArrayList<String> exclude = []
     public ArrayList<String> include = []
 
@@ -64,6 +64,7 @@ class SensorsAnalyticsExtension {
         return "\tdebug=" + debug + "\n" +
                 "\tdisableJar=" + disableJar + "\n" +
                 "\tuseInclude=" + useInclude + "\n" +
+                "\tdisableTrackPush=" + disableTrackPush + "\n" +
                 "\tautoHandleWebView=" + autoHandleWebView + "\n" +
                 "\taddUCJavaScriptInterface=" + addUCJavaScriptInterface + "\n" +
                 "\tlambdaParamOptimize=" + lambdaParamOptimize + "\n" +

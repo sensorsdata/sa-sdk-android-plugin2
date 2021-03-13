@@ -24,6 +24,8 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
+import com.sensorsdata.analytics.android.plugin.hook.SensorsPushInjected
+
 class SensorsAnalyticsClassVisitor extends ClassVisitor {
     private String mClassName
     private String mSuperName
@@ -234,6 +236,12 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
             protected void onMethodEnter() {
                 super.onMethodEnter()
                 nameDesc = name + desc
+                // Hook Push
+                if (!SensorsAnalyticsUtil.isStatic(access) && !transformHelper.extension.disableTrackPush) {
+                    SensorsPushInjected.handleJPush(methodVisitor, mSuperName, mClassName, nameDesc)
+                    SensorsPushInjected.handleMeizuPush(methodVisitor, mSuperName, mClassName, nameDesc)
+                }
+
                 pubAndNoStaticAccess = SensorsAnalyticsUtil.isPublic(access) && !SensorsAnalyticsUtil.isStatic(access)
                 protectedAndNotStaticAccess = SensorsAnalyticsUtil.isProtected(access) && !SensorsAnalyticsUtil.isStatic(access)
                 if (pubAndNoStaticAccess) {
