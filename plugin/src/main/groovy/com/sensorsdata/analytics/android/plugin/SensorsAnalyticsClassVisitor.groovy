@@ -16,6 +16,7 @@
  */
 package com.sensorsdata.analytics.android.plugin
 
+import com.sensorsdata.analytics.android.plugin.hook.SensorsPushInjected
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
@@ -23,8 +24,6 @@ import org.objectweb.asm.Handle
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-
-import com.sensorsdata.analytics.android.plugin.hook.SensorsPushInjected
 
 class SensorsAnalyticsClassVisitor extends ClassVisitor {
     private String mClassName
@@ -375,6 +374,12 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                         methodVisitor.visitVarInsn(ILOAD, 3)
                         methodVisitor.visitVarInsn(ISTORE, thirdLocalId)
                         localIds.add(thirdLocalId)
+                    } else if (nameDesc == "onStopTrackingTouch(Landroid/widget/SeekBar;)V") {
+                        localIds = new ArrayList<>()
+                        int firstLocalId = newLocal(Type.getObjectType("android/widget/SeekBar"))
+                        methodVisitor.visitVarInsn(ALOAD, 1)
+                        methodVisitor.visitVarInsn(ASTORE, firstLocalId)
+                        localIds.add(firstLocalId)
                     }
                 } else if (protectedAndNotStaticAccess) {
                     if (nameDesc == "onListItemClick(Landroid/widget/ListView;Landroid/view/View;IJ)V") {
@@ -678,6 +683,16 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                                 isHasTracked = true
                                 return
                             }
+                        }
+                    } else if (mInterfaces.contains('android/widget/SeekBar$OnSeekBarChangeListener')
+                            && nameDesc == 'onStopTrackingTouch(Landroid/widget/SeekBar;)V') {
+                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.INTERFACE_METHODS
+                                .get('android/widget/SeekBar$OnSeekBarChangeListeneronStopTrackingTouch(Landroid/widget/SeekBar;)V')
+                        if (sensorsAnalyticsMethodCell != null) {
+                            methodVisitor.visitVarInsn(ALOAD, localIds.get(0))
+                            methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
+                            isHasTracked = true
+                            return
                         }
                     } else {
                         for (interfaceName in mInterfaces) {
