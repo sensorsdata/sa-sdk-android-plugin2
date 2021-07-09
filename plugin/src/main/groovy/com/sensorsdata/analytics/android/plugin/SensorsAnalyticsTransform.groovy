@@ -45,7 +45,7 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.3.5"
+    public static final String VERSION = "3.3.6"
     public static final String MIN_SDK_VERSION = "5.1.0"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
@@ -406,7 +406,7 @@ class SensorsAnalyticsTransform extends Transform {
                 byte[] sourceClassBytes = SensorsAnalyticsUtil.toByteArrayAndAutoCloseStream(new FileInputStream(classFile))
                 byte[] modifiedClassBytes = modifyClass(sourceClassBytes, classNameAnalytics)
                 if (modifiedClassBytes) {
-                    modified = new File(tempDir, className.replace('.', '') + '.class')
+                    modified = new File(tempDir, UUID.randomUUID().toString() + '.class')
                     if (modified.exists()) {
                         modified.delete()
                     }

@@ -7,120 +7,76 @@ apply plugin: 'maven'
 version = pluginVersion
 project.archivesBaseName = "android-gradle-plugin2"
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
 task sourceJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
 }
 
-ext {
-    pomFilePath = "${project.buildDir.absolutePath}/tmp/pom.xml"
-    pomFile = file(pomFilePath)
-}
-
-configurations {
-    pom
-}
-
-artifacts {
-    archives jar
-    archives sourceJar
-    archives javadocJar
-    if (pomFile.exists()) {
-        pom pomFile
+javadoc {
+    options {
+        encoding "UTF-8"
+        charSet 'UTF-8'
     }
 }
 
-task signJars(type: Sign, dependsOn: [jar, javadocJar, sourceJar]) {
-    sign configurations.archives
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
 }
 
-task signPom(type: Sign) {
-    sign configurations.pom
-}
-
-if (project.ext.pomFile.exists()) {
-    task preparePublication(dependsOn: [signJars, signPom])
-} else {
-    task preparePublication(dependsOn: signJars)
-}
-
-def getSignatureFiles = {
-    def allFiles = project.tasks.signJars.signatureFiles.collect{it}
-    def signedSources = allFiles.find{ it.name.contains('-sources') }
-    def signedJavadoc = allFiles.find{ it.name.contains('-javadoc') }
-    def signedJar = (allFiles - [signedSources, signJars])[0]
-    return [
-            [archive: signedSources, classifier: 'sources', extension: 'jar.asc'],
-            [archive: signedJavadoc, classifier: 'javadoc', extension: 'jar.asc'],
-            [archive: signedJar, classifier: 'null', extension: 'jar.asc']
-    ]
-}
-
-def getPomSignature = {
-    return project.tasks.signPom.signatureFiles.collect{ it }[0]
-}
-
-def siteUrl = 'https://github.com/sensorsdata/sa-sdk-android-plugin2'
-def gitUrl = 'https://github.com/sensorsdata/sa-sdk-android-plugin2.git'
-def issueUrl = 'https://github.com/sensorsdata/sa-sdk-android-plugin2/issues'
-group = "com.sensorsdata.analytics.android"
-
-install {
-    repositories.mavenInstaller {
-// generates POM.xml with proper parameters
-        pom {
-            project {
+publishing {
+    publications {
+        mavenAndroid(MavenPublication) {
+            groupId = 'com.sensorsdata.analytics.android'
+            artifactId = 'android-gradle-plugin2'
+            version = version
+            artifact sourceJar
+            artifact javadocJar
+            artifact jar
+            // 配置 pop 文件格式
+            pom {
                 packaging 'jar'
-                name 'The official Android SDK Plugin for Sensors Analytics.'
-                description 'The official Android SDK Plugin for Sensors Analytics.'
-                url siteUrl
-
+                name = 'The official Android SDK Plugin for Sensors Analytics.'
+                description = 'The official Android SDK Plugin for Sensors Analytics.'
+                url = 'The official Android SDK Plugin for Sensors Analytics.'
                 licenses {
                     license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        name='The Apache Software License, Version 2.0'
+                        url='http://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
                 developers {
                     developer {
-                        id 'zouyuhan'
-                        name 'Yuhan ZOU'
-                        email 'zouyuhan@sensorsdata.cn'
+                        id = 'dengshiwei'
+                        name = 'dengshiwei'
+                        email = 'dengshiwei@sensorsdata.com'
                     }
                 }
-
                 scm {
-                    connection gitUrl
-                    developerConnection gitUrl
-                    url siteUrl
+                    connection = 'https://github.com/sensorsdata/sa-sdk-android-plugin2'
+                    developerConnection = 'https://github.com/sensorsdata/sa-sdk-android-plugin2.git'
+                    url = 'https://github.com/sensorsdata/sa-sdk-android-plugin2'
                 }
+            }
+        }
+    }
+    // 配置远程仓库
+    repositories {
+        Properties properties = new Properties()
+        properties.load(project.rootProject.file('local.properties').newDataInputStream())
+        def mavenUser = properties.getProperty("maven.user")
+        def mavenPassword = properties.getProperty("maven.password")
+        maven {
+            url = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+            credentials {
+                username mavenUser
+                password mavenPassword
             }
         }
     }
 }
 
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
-bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
-    configurations = ['archives']
-    pkg {
-        repo = "maven"
-        name = "SensorsAnalyticsSDKPlugin2"
-        desc = 'The official Android SDK Plugin for Sensors Analytics.'
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        issueTrackerUrl = issueUrl
-        licenses = ["Apache-2.0"]
-        labels = 'Groovy'
-        publicDownloadNumbers = true
-        publish = true
-    }
+// 对 mavenAndroid 发布内容进行签名
+signing {
+    sign publishing.publications.mavenAndroid
 }
