@@ -17,6 +17,7 @@
 package com.sensorsdata.analytics.android.plugin
 
 import com.android.build.gradle.AppExtension
+import com.sensorsdata.analytics.android.plugin.utils.VersionUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.internal.reflect.Instantiator
@@ -33,6 +34,7 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
         boolean disableSensorsAnalyticsMultiThreadBuild = false
         boolean disableSensorsAnalyticsIncrementalBuild = false
         boolean isHookOnMethodEnter = false
+        boolean isAndroidTv = false
         Properties properties = new Properties()
         if (project.rootProject.file('gradle.properties').exists()) {
             properties.load(project.rootProject.file('gradle.properties').newDataInputStream())
@@ -41,6 +43,7 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
             disableSensorsAnalyticsMultiThreadBuild = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disableMultiThreadBuild", "false"))
             disableSensorsAnalyticsIncrementalBuild = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disableIncrementalBuild", "false"))
             isHookOnMethodEnter = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.isHookOnMethodEnter", "false"))
+            isAndroidTv = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.isAndroidTv", "false"))
         }
         if (!disableSensorsAnalyticsPlugin) {
             AppExtension appExtension = project.extensions.findByType(AppExtension.class)
@@ -48,6 +51,7 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
             transformHelper.disableSensorsAnalyticsIncremental = disableSensorsAnalyticsIncrementalBuild
             transformHelper.disableSensorsAnalyticsMultiThread = disableSensorsAnalyticsMultiThreadBuild
             transformHelper.isHookOnMethodEnter = isHookOnMethodEnter
+            VersionUtils.isAndroidTv = isAndroidTv
             appExtension.registerTransform(new SensorsAnalyticsTransform(transformHelper))
         } else {
             Logger.error("------------您已关闭了神策插件--------------")

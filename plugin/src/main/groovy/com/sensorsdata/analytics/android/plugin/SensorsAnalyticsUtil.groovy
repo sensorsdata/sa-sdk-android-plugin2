@@ -27,6 +27,7 @@ class SensorsAnalyticsUtil {
     private static final HashSet<String> targetFragmentClass = new HashSet()
     private static final HashSet<String> targetMenuMethodDesc = new HashSet()
     private static final HashSet<String> specialClass = new HashSet()
+    private static final HashSet<String> targetActivityClass = new HashSet<>()
 
     static {
         /**
@@ -55,6 +56,10 @@ class SensorsAnalyticsUtil {
         targetFragmentClass.add('androidx/fragment/app/Fragment')
         targetFragmentClass.add('androidx/fragment/app/ListFragment')
         targetFragmentClass.add('androidx/fragment/app/DialogFragment')
+
+        targetActivityClass.add('android/app/Activity')
+        targetActivityClass.add('android/support/v7/app/AppCompatActivity')
+        targetActivityClass.add('androidx/appcompat/app/AppCompatActivity')
 
         for (className in SensorsAnalyticsTransformHelper.special) {
             specialClass.add(className.replace('.', '/'))
@@ -185,5 +190,9 @@ class SensorsAnalyticsUtil {
                 break
         }
         return result
+    }
+
+    static boolean isInstanceOfActivity(String superName) {
+        return targetActivityClass.contains(superName)
     }
 }

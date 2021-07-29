@@ -57,6 +57,32 @@ publishing {
                     developerConnection = 'https://github.com/sensorsdata/sa-sdk-android-plugin2.git'
                     url = 'https://github.com/sensorsdata/sa-sdk-android-plugin2'
                 }
+                pom.withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+                    project.configurations.all { configuration ->
+                        def name = configuration.name
+                        if (name == 'implementation' || name == 'releaseImplementation') {
+                            configuration.allDependencies.each {
+                                if (it.group != null && it.name != "unspecified" && it.version != null) {
+                                    def groupId = it.group
+                                    def artifactId = it.name
+                                    def version = it.version
+                                    if (it instanceof ProjectDependency) {
+                                        def properties = it.getDependencyProject().getProperties()
+                                        groupId = properties.get("GROUP")
+                                        artifactId = properties.get("POM_ARTIFACT_ID")
+                                    }
+                                    println "dependency:" + groupId + ":" + artifactId + ":" + version
+                                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                                    dependencyNode.appendNode('groupId', groupId)
+                                    dependencyNode.appendNode('artifactId', artifactId)
+                                    dependencyNode.appendNode('version', version)
+                                    dependencyNode.appendNode('scope', 'compile')
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -67,6 +93,7 @@ publishing {
         def mavenUser = properties.getProperty("maven.user")
         def mavenPassword = properties.getProperty("maven.password")
         maven {
+//            url ='../repo'
             url = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
             credentials {
                 username mavenUser

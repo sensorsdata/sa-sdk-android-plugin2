@@ -29,6 +29,7 @@ import com.android.build.api.transform.TransformInvocation
 import com.android.build.api.transform.TransformOutputProvider
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.android.ide.common.internal.WaitableExecutor
+import com.sensorsdata.analytics.android.plugin.utils.VersionUtils
 import groovy.io.FileType
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.io.FileUtils
@@ -38,6 +39,8 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
 
 import java.lang.reflect.Field
+import java.security.CodeSource
+import java.security.ProtectionDomain
 import java.util.concurrent.Callable
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
@@ -45,10 +48,13 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.3.6"
+    public static final String VERSION = "3.3.7"
     public static final String MIN_SDK_VERSION = "5.1.0"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
+    // “com.sensorsdata.analytics.android.sdk.SensorsDataAPI” 类所在路径
+    private String sensorsSdkJarPath
+    private volatile boolean isFoundSDKJar = false
 
     SensorsAnalyticsTransform(SensorsAnalyticsTransformHelper transformHelper) {
         this.transformHelper = transformHelper
@@ -170,6 +176,19 @@ class SensorsAnalyticsTransform extends Transform {
         urlClassLoader = new URLClassLoader(urlArray)
         transformHelper.urlClassLoader = urlClassLoader
         checkRNState()
+        VersionUtils.loadAndroidSDKVersion(urlClassLoader)
+        checkSensorsSDK()
+    }
+
+    private void checkSensorsSDK() {
+        try {
+            Class sdkClazz = urlClassLoader.loadClass("com.sensorsdata.analytics.android.sdk.SensorsDataAPI")
+            ProtectionDomain pd = sdkClazz.getProtectionDomain()
+            CodeSource cs = pd.getCodeSource()
+            sensorsSdkJarPath = cs.getLocation().toURI().getPath()
+        } catch (Throwable throwable) {
+            Logger.error("Can not load 'com.sensorsdata.analytics.android.sdk.SensorsDataAPI' class: ${throwable.localizedMessage}")
+        }
     }
 
     private void checkRNState() {
@@ -287,7 +306,7 @@ class SensorsAnalyticsTransform extends Transform {
 
     void transformJar(File dest, JarInput jarInput, Context context) {
         def modifiedJar = null
-        if (!transformHelper.extension.disableJar || jarInput.file.absolutePath.contains('SensorsAnalyticsSDK')) {
+        if (!transformHelper.extension.disableJar || checkJarValidate(jarInput)) {
             Logger.info("开始遍历 jar：" + jarInput.file.absolutePath)
             modifiedJar = modifyJarFile(jarInput.file, context.getTemporaryDir())
             Logger.info("结束遍历 jar：" + jarInput.file.absolutePath)
@@ -296,6 +315,24 @@ class SensorsAnalyticsTransform extends Transform {
             modifiedJar = jarInput.file
         }
         FileUtils.copyFile(modifiedJar, dest)
+    }
+
+    private boolean checkJarValidate(JarInput jarInput) {
+        try {
+            if (isFoundSDKJar || sensorsSdkJarPath == null) {
+                return false
+            }
+            def jarLocation = jarInput.file.toURI().getPath()
+            if (sensorsSdkJarPath.length() == jarLocation.length() && sensorsSdkJarPath == jarLocation) {
+                isFoundSDKJar = true
+                return true
+            } else {
+                return false
+            }
+        } catch (Throwable throwable) {
+            Logger.error("Checking jar's validation error: " + throwable.localizedMessage)
+            return false
+        }
     }
 
     /**

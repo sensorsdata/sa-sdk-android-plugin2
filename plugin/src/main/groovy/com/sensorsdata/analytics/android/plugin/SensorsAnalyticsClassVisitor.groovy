@@ -17,6 +17,7 @@
 package com.sensorsdata.analytics.android.plugin
 
 import com.sensorsdata.analytics.android.plugin.hook.SensorsPushInjected
+import com.sensorsdata.analytics.android.plugin.utils.VersionUtils
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
@@ -42,6 +43,10 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
 
     private HashMap<String, SensorsAnalyticsMethodCell> mLambdaMethodCells = new HashMap<>()
 
+    private boolean isExtendsActivity
+    // 是否是 AndroidTV 版本
+    private boolean isAndroidTv
+
     @Override
     protected Object clone() throws CloneNotSupportedException {
         return super.clone()
@@ -52,6 +57,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         this.classVisitor = classVisitor
         this.classNameAnalytics = classNameAnalytics
         this.transformHelper = transformHelper
+        isAndroidTv = VersionUtils.isTvVersion();
     }
 
     private
@@ -83,6 +89,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         mInterfaces = interfaces
         this.version = version
         super.visit(version, access, name, signature, superName, interfaces)
+        isExtendsActivity = SensorsAnalyticsUtil.isInstanceOfActivity(superName)
         if (Logger.debug) {
             Logger.info("开始扫描类：${mClassName}")
             Logger.info("类详情：version=${version};\taccess=${Logger.accCode2String(access)};\tname=${name};\tsignature=${signature};\tsuperName=${superName};\tinterfaces=${interfaces.toArrayString()}\n")
@@ -542,6 +549,14 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                             return
                         }
                     }
+                    return
+                }
+
+                if (isAndroidTv && isExtendsActivity && nameDesc == 'dispatchKeyEvent(Landroid/view/KeyEvent;)Z') {
+                    methodVisitor.visitVarInsn(ALOAD, 0)
+                    methodVisitor.visitVarInsn(ALOAD, 1)
+                    methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, "trackViewOnClick", "(Landroid/app/Activity;Landroid/view/KeyEvent;)V", false)
+                    isHasTracked = true
                     return
                 }
 
