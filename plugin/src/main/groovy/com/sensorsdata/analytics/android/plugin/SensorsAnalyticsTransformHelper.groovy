@@ -28,7 +28,8 @@ class SensorsAnalyticsTransformHelper {
     boolean disableSensorsAnalyticsMultiThread
     boolean disableSensorsAnalyticsIncremental
     boolean isHookOnMethodEnter
-    HashSet<String> exclude = new HashSet<>(['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx', 'com.qiyukf', 'android.arch', 'com.google.android', "com.tencent.smtt"])
+    HashSet<String> exclude = new HashSet<>(['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx', 'com.qiyukf', 'android.arch',
+                                             'com.google.android', "com.tencent.smtt", 'com.bumptech.glide'])
     HashSet<String> include = new HashSet<>(['butterknife.internal.DebouncingOnClickListener',
                                              'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
                                              'com.facebook.react.uimanager.NativeViewHierarchyManager'])
