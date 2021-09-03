@@ -17,6 +17,7 @@
 package com.sensorsdata.analytics.android.plugin
 
 import com.sensorsdata.analytics.android.plugin.hook.SensorsPushInjected
+import com.sensorsdata.analytics.android.plugin.hook.config.SensorsFragmentHookConfig
 import com.sensorsdata.analytics.android.plugin.utils.VersionUtils
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
@@ -57,7 +58,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         this.classVisitor = classVisitor
         this.classNameAnalytics = classNameAnalytics
         this.transformHelper = transformHelper
-        isAndroidTv = VersionUtils.isTvVersion();
+        isAndroidTv = VersionUtils.isTvVersion()
     }
 
     private
@@ -107,7 +108,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
         if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)) {
             MethodVisitor mv
             // 添加剩下的方法，确保super.onHiddenChanged(hidden);等先被调用
-            Iterator<Map.Entry<String, SensorsAnalyticsMethodCell>> iterator = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.entrySet().iterator()
+            Iterator<Map.Entry<String, SensorsAnalyticsMethodCell>> iterator = SensorsFragmentHookConfig.FRAGMENT_METHODS.entrySet().iterator()
             while (iterator.hasNext()) {
                 Map.Entry<String, SensorsAnalyticsMethodCell> entry = iterator.next()
                 String key = entry.getKey()
@@ -120,7 +121,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 // call super
                 visitMethodWithLoadedParams(mv, Opcodes.INVOKESPECIAL, mSuperName, methodCell.name, methodCell.desc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
                 // call injected method
-                visitMethodWithLoadedParams(mv, Opcodes.INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, methodCell.agentName, methodCell.agentDesc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
+                visitMethodWithLoadedParams(mv, Opcodes.INVOKESTATIC, SensorsFragmentHookConfig.SENSORS_FRAGMENT_TRACK_HELPER_API, methodCell.agentName, methodCell.agentDesc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
                 mv.visitInsn(Opcodes.RETURN)
                 mv.visitMaxs(methodCell.paramsCount, methodCell.paramsCount)
                 mv.visitEnd()
@@ -275,8 +276,8 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                         methodVisitor.visitVarInsn(ISTORE, third)
                         localIds.add(third)
                     } else if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)
-                            && SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc) != null) {
-                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc)
+                            && SensorsFragmentHookConfig.FRAGMENT_METHODS.get(nameDesc) != null) {
+                        SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsFragmentHookConfig.FRAGMENT_METHODS.get(nameDesc)
                         localIds = new ArrayList<>()
                         Type[] types = Type.getArgumentTypes(desc)
                         for (int i = 1; i < sensorsAnalyticsMethodCell.paramsCount; i++) {
@@ -474,14 +475,14 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                  * androidx/fragment/app/Fragment，androidx/fragment/app/ListFragment，androidx/fragment/app/DialogFragment
                  */
                 if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)) {
-                    SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.FRAGMENT_METHODS.get(nameDesc)
+                    SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsFragmentHookConfig.FRAGMENT_METHODS.get(nameDesc)
                     if (sensorsAnalyticsMethodCell != null) {
                         visitedFragMethods.add(nameDesc)
                         methodVisitor.visitVarInsn(ALOAD, 0)
                         for (int i = 1; i < sensorsAnalyticsMethodCell.paramsCount; i++) {
                             methodVisitor.visitVarInsn(sensorsAnalyticsMethodCell.opcodes.get(i), localIds[i - 1])
                         }
-                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
+                        methodVisitor.visitMethodInsn(INVOKESTATIC, SensorsFragmentHookConfig.SENSORS_FRAGMENT_TRACK_HELPER_API, sensorsAnalyticsMethodCell.agentName, sensorsAnalyticsMethodCell.agentDesc, false)
                         isHasTracked = true
                         return
                     }

@@ -244,46 +244,6 @@ class SensorsAnalyticsHookConfig {
     }
 
     /**
-     * Fragment中的方法
-     */
-    public final static HashMap<String, SensorsAnalyticsMethodCell> FRAGMENT_METHODS = new HashMap<>()
-
-    static {
-        FRAGMENT_METHODS.put('onResume()V', new SensorsAnalyticsMethodCell(
-                'onResume',
-                '()V',
-                '',// parent省略，均为 android/app/Fragment 或 android/support/v4/app/Fragment
-                'trackFragmentResume',
-                '(Ljava/lang/Object;)V',
-                0, 1,
-                [Opcodes.ALOAD]))
-        FRAGMENT_METHODS.put('setUserVisibleHint(Z)V', new SensorsAnalyticsMethodCell(
-                'setUserVisibleHint',
-                '(Z)V',
-                '',// parent省略，均为 android/app/Fragment 或 android/support/v4/app/Fragment
-                'trackFragmentSetUserVisibleHint',
-                '(Ljava/lang/Object;Z)V',
-                0, 2,
-                [Opcodes.ALOAD, Opcodes.ILOAD]))
-        FRAGMENT_METHODS.put('onHiddenChanged(Z)V', new SensorsAnalyticsMethodCell(
-                'onHiddenChanged',
-                '(Z)V',
-                '',
-                'trackOnHiddenChanged',
-                '(Ljava/lang/Object;Z)V',
-                0, 2,
-                [Opcodes.ALOAD, Opcodes.ILOAD]))
-        FRAGMENT_METHODS.put('onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V', new SensorsAnalyticsMethodCell(
-                'onViewCreated',
-                '(Landroid/view/View;Landroid/os/Bundle;)V',
-                '',
-                'onFragmentViewCreated',
-                '(Ljava/lang/Object;Landroid/view/View;Landroid/os/Bundle;)V',
-                0, 3,
-                [Opcodes.ALOAD, Opcodes.ALOAD, Opcodes.ALOAD]))
-    }
-
-    /**
      * android.gradle 3.2.1 版本中，针对 Lambda 表达式处理
      */
 
