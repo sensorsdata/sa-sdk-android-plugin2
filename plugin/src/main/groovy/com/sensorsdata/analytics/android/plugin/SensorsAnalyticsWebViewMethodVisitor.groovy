@@ -98,7 +98,7 @@ class SensorsAnalyticsWebViewMethodVisitor extends AdviceAdapter implements Opco
                         positionList.reverseEach { tmp ->
                             loadLocal(tmp)
                         }
-                        desc = reStructureDesc(desc)
+                        desc = SensorsAnalyticsUtil.appendDescBeforeGiven(desc, VIEW_DESC)
                         //为保持新 SDK 使用旧版插件问题，会使用新 SDK loadUrl + 2 后缀的方法
                         mv.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, name + "2", desc, false)
                     }
@@ -129,7 +129,7 @@ class SensorsAnalyticsWebViewMethodVisitor extends AdviceAdapter implements Opco
                 mv.visitTypeInsn(CHECKCAST, "android/view/View")
             }
         }
-        desc = reStructureDesc(desc)
+        desc = SensorsAnalyticsUtil.appendDescBeforeGiven(desc, VIEW_DESC)
         //为保持新 SDK 使用旧版插件问题，会使用新 SDK loadUrl + 2 后缀的方法
         mv.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, name + "2", desc, false)
         mv.visitLabel(label)
@@ -190,10 +190,6 @@ class SensorsAnalyticsWebViewMethodVisitor extends AdviceAdapter implements Opco
             OWNER_WHITE_SET << owner
             return (isPreviousX5WebView = true)
         }
-    }
-
-    private static String reStructureDesc(String desc) {
-        return desc.replaceFirst("\\(", "(" + VIEW_DESC)
     }
 
     private enum X5WebViewStatus {

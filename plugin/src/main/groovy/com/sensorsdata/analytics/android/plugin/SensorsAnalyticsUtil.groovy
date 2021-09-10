@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
 
 @CompileStatic
 class SensorsAnalyticsUtil {
@@ -194,5 +195,9 @@ class SensorsAnalyticsUtil {
 
     static boolean isInstanceOfActivity(String superName) {
         return targetActivityClass.contains(superName)
+    }
+
+    static String appendDescBeforeGiven(String givenDesc, String appendDesc) {
+        return givenDesc.replaceFirst("\\(", "(" + appendDesc);
     }
 }

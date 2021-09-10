@@ -28,8 +28,25 @@ class SensorsAnalyticsTransformHelper {
     boolean disableSensorsAnalyticsMultiThread
     boolean disableSensorsAnalyticsIncremental
     boolean isHookOnMethodEnter
-    HashSet<String> exclude = new HashSet<>(['com.sensorsdata.analytics.android.sdk', 'android.support', 'androidx', 'com.qiyukf', 'android.arch',
-                                             'com.google.android', "com.tencent.smtt", 'com.bumptech.glide'])
+    HashSet<String> exclude = new HashSet<>(['com.sensorsdata.analytics.android.sdk',
+                                             'android.support',
+                                             'androidx',
+                                             'com.qiyukf',
+                                             'android.arch',
+                                             'com.google.android',
+                                             "com.tencent.smtt",
+                                             "com.umeng.message",
+                                             "com.xiaomi.push",
+                                             "com.huawei.hms",
+                                             "com.igexin.push",
+                                             "cn.jpush.android",
+                                             "cn.jiguang",
+                                             "com.meizu.cloud.pushsdk",
+                                             "com.vivo.push",
+                                             "com.igexin.sdk",
+                                             "com.xiaomi.mipush.sdk",
+                                             "com.heytap.msp.push",
+                                             'com.bumptech.glide'])
     HashSet<String> include = new HashSet<>(['butterknife.internal.DebouncingOnClickListener',
                                              'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
                                              'com.facebook.react.uimanager.NativeViewHierarchyManager'])
@@ -38,6 +55,12 @@ class SensorsAnalyticsTransformHelper {
                                                    'com.google.android.material.tabs.TabLayout$ViewPagerOnTabSelectedListener',
                                                    'android.support.v7.app.ActionBarDrawerToggle',
                                                    'androidx.appcompat.app.ActionBarDrawerToggle',
+                                                   'androidx.fragment.app.FragmentActivity',
+                                                   'androidx.core.app.NotificationManagerCompat',
+                                                   'androidx.core.app.ComponentActivity',
+                                                   'android.support.v4.app.NotificationManagerCompat',
+                                                   'android.support.v4.app.SupportActivity',
+                                                   'cn.jpush.android.service.PluginMeizuPlatformsReceiver',
                                                    'androidx.appcompat.widget.ActionMenuPresenter$OverflowMenuButton',
                                                    'android.widget.ActionMenuPresenter$OverflowMenuButton',
                                                    'android.support.v7.widget.ActionMenuPresenter$OverflowMenuButton']
@@ -130,7 +153,7 @@ class SensorsAnalyticsTransformHelper {
         return classNameAnalytics
     }
 
-    enum RN_STATE{
+    enum RN_STATE {
         NOT_FOUND, NO_VERSION, HAS_VERSION
     }
 }

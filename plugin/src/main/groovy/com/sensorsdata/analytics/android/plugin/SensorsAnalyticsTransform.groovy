@@ -48,8 +48,8 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.3.9"
-    public static final String MIN_SDK_VERSION = "5.4.2"
+    public static final String VERSION = "3.4.0"
+    public static final String MIN_SDK_VERSION = "5.4.3"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
     // “com.sensorsdata.analytics.android.sdk.SensorsDataAPI” 类所在路径

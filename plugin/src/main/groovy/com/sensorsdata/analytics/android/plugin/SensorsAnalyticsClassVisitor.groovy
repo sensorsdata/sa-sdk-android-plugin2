@@ -16,7 +16,8 @@
  */
 package com.sensorsdata.analytics.android.plugin
 
-import com.sensorsdata.analytics.android.plugin.hook.SensorsPushInjected
+import com.sensorsdata.analytics.android.plugin.push.SensorsAnalyticsPushMethodVisitor
+import com.sensorsdata.analytics.android.plugin.push.SensorsPushInjected
 import com.sensorsdata.analytics.android.plugin.hook.config.SensorsFragmentHookConfig
 import com.sensorsdata.analytics.android.plugin.utils.VersionUtils
 import org.objectweb.asm.AnnotationVisitor
@@ -32,6 +33,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
     private String mSuperName
     private String[] mInterfaces
     private HashSet<String> visitedFragMethods = new HashSet<>()// 无需判空
+    private Boolean isFoundOnNewIntent = null
     private ClassVisitor classVisitor
 
     private SensorsAnalyticsTransformHelper transformHelper
@@ -104,6 +106,9 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
     @Override
     void visitEnd() {
         super.visitEnd()
+        if (!transformHelper.extension.disableTrackPush && isFoundOnNewIntent != null && !isFoundOnNewIntent && mSuperName == "android/app/Activity") {
+            SensorsPushInjected.addOnNewIntent(classVisitor);
+        }
 
         if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)) {
             MethodVisitor mv
@@ -180,11 +185,22 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 return null
             }
         }
+        if (mSuperName == "android/app/Activity") {
+            isFoundOnNewIntent = false
+            if (name == "onNewIntent" && desc == "(Landroid/content/Intent;)V") {
+                isFoundOnNewIntent = true
+            }
+        }
 
         MethodVisitor methodVisitor = cv.visitMethod(access, name, desc, signature, exceptions)
         if (transformHelper.extension != null && transformHelper.extension.autoHandleWebView && transformHelper.urlClassLoader != null) {
             methodVisitor = new SensorsAnalyticsWebViewMethodVisitor(methodVisitor, access, name, desc, transformHelper, mClassName, mSuperName)
         }
+
+        if (transformHelper.extension != null && !transformHelper.extension.disableTrackPush) {
+            methodVisitor = new SensorsAnalyticsPushMethodVisitor(methodVisitor, access, name, desc)
+        }
+
         SensorsAnalyticsDefaultMethodVisitor sensorsAnalyticsDefaultMethodVisitor = new SensorsAnalyticsDefaultMethodVisitor(methodVisitor, access, name, desc) {
             boolean isSensorsDataTrackViewOnClickAnnotation = false
             boolean isSensorsDataIgnoreTrackOnClick = false
@@ -245,8 +261,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 nameDesc = name + desc
                 // Hook Push
                 if (!SensorsAnalyticsUtil.isStatic(access) && !transformHelper.extension.disableTrackPush) {
-                    SensorsPushInjected.handleJPush(methodVisitor, mSuperName, mClassName, nameDesc)
-                    SensorsPushInjected.handleMeizuPush(methodVisitor, mSuperName, mClassName, nameDesc)
+                    SensorsPushInjected.handlePush(methodVisitor, mSuperName, mClassName, nameDesc, transformHelper.urlClassLoader)
                 }
 
                 pubAndNoStaticAccess = SensorsAnalyticsUtil.isPublic(access) && !SensorsAnalyticsUtil.isStatic(access)
