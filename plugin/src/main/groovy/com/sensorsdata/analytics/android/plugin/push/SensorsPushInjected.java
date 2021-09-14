@@ -185,7 +185,7 @@ public class SensorsPushInjected {
         if ("onReceive(Landroid/content/Context;Landroid/content/Intent;)V".equals(nameDesc)) {
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
-            methodVisitor.visitVarInsn(Opcodes.ILOAD, 2);
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 2);
             methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, PUSH_TRACK_OWNER, "onBroadcastReceiver",
                     "(Landroid/content/BroadcastReceiver;Landroid/content/Context;Landroid/content/Intent;)V", false);
         }
