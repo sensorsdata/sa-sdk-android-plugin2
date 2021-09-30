@@ -29,22 +29,14 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
         Instantiator ins = ((DefaultGradle) project.getGradle()).getServices().get(Instantiator)
         def args = [ins] as Object[]
         SensorsAnalyticsExtension extension = project.extensions.create("sensorsAnalytics", SensorsAnalyticsExtension, args)
+        Map<String, ?> properties = project.getProperties()
+        boolean disableSensorsAnalyticsPlugin = Boolean.parseBoolean(properties.getOrDefault("sensorsAnalytics.disablePlugin", "false")) ||
+                Boolean.parseBoolean(properties.getOrDefault("disableSensorsAnalyticsPlugin", "false"))
+        boolean disableSensorsAnalyticsMultiThreadBuild = Boolean.parseBoolean(properties.getOrDefault("sensorsAnalytics.disableMultiThreadBuild", "false"))
+        boolean disableSensorsAnalyticsIncrementalBuild = Boolean.parseBoolean(properties.getOrDefault("sensorsAnalytics.disableIncrementalBuild", "false"))
+        boolean isHookOnMethodEnter = Boolean.parseBoolean(properties.getOrDefault("sensorsAnalytics.isHookOnMethodEnter", "false"))
+        boolean isAndroidTv = Boolean.parseBoolean(properties.getOrDefault("sensorsAnalytics.isAndroidTv", "false"))
 
-        boolean disableSensorsAnalyticsPlugin = false
-        boolean disableSensorsAnalyticsMultiThreadBuild = false
-        boolean disableSensorsAnalyticsIncrementalBuild = false
-        boolean isHookOnMethodEnter = false
-        boolean isAndroidTv = false
-        Properties properties = new Properties()
-        if (project.rootProject.file('gradle.properties').exists()) {
-            properties.load(project.rootProject.file('gradle.properties').newDataInputStream())
-            disableSensorsAnalyticsPlugin = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disablePlugin", "false")) ||
-                    Boolean.parseBoolean(properties.getProperty("disableSensorsAnalyticsPlugin", "false"))
-            disableSensorsAnalyticsMultiThreadBuild = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disableMultiThreadBuild", "false"))
-            disableSensorsAnalyticsIncrementalBuild = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.disableIncrementalBuild", "false"))
-            isHookOnMethodEnter = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.isHookOnMethodEnter", "false"))
-            isAndroidTv = Boolean.parseBoolean(properties.getProperty("sensorsAnalytics.isAndroidTv", "false"))
-        }
         if (!disableSensorsAnalyticsPlugin) {
             AppExtension appExtension = project.extensions.findByType(AppExtension.class)
             SensorsAnalyticsTransformHelper transformHelper = new SensorsAnalyticsTransformHelper(extension, appExtension)
@@ -56,6 +48,5 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
         } else {
             Logger.error("------------您已关闭了神策插件--------------")
         }
-
     }
 }

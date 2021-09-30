@@ -24,7 +24,7 @@ import org.objectweb.asm.Type
 
 @CompileStatic
 class SensorsAnalyticsUtil {
-    public static final int ASM_VERSION = Opcodes.ASM6
+    public static final int ASM_VERSION = Opcodes.ASM7
     private static final HashSet<String> targetFragmentClass = new HashSet()
     private static final HashSet<String> targetMenuMethodDesc = new HashSet()
     private static final HashSet<String> specialClass = new HashSet()
