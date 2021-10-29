@@ -27,6 +27,7 @@ class SensorsAnalyticsExtension {
     public boolean lambdaEnabled = true
     public boolean autoHandleWebView = true
     public boolean addUCJavaScriptInterface = false
+    public boolean addXWalkJavaScriptInterface = false
     public boolean lambdaParamOptimize = false
     public boolean disableTrackPush = false
     public ArrayList<String> exclude = []
@@ -67,6 +68,7 @@ class SensorsAnalyticsExtension {
                 "\tdisableTrackPush=" + disableTrackPush + "\n" +
                 "\tautoHandleWebView=" + autoHandleWebView + "\n" +
                 "\taddUCJavaScriptInterface=" + addUCJavaScriptInterface + "\n" +
+                "\taddXWalkJavaScriptInterface=" + addXWalkJavaScriptInterface + "\n" +
                 "\tlambdaParamOptimize=" + lambdaParamOptimize + "\n" +
                 "\tlambdaEnabled=" + lambdaEnabled + "\n" +
                 "\texclude=[" + excludeBuilder.toString() + "]" + "\n" +

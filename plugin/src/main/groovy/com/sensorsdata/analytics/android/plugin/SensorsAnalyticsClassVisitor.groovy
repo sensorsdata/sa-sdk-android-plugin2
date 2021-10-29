@@ -221,6 +221,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
             boolean protectedAndNotStaticAccess
             ArrayList<Integer> localIds
             boolean shouldAddUCJS = false
+            boolean shouldAddXWalkJS = false
 
             @Override
             void visitEnd() {
@@ -234,6 +235,9 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 }
                 if (shouldAddUCJS) {
                     visitAnnotation("Lcom/uc/webview/export/JavascriptInterface;", true)
+                }
+                if (shouldAddXWalkJS) {
+                    visitAnnotation("Lorg/xwalk/core/JavascriptInterface;", true)
                 }
             }
 
@@ -824,8 +828,9 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                             }
                         }
                     }
-                } else if (classNameAnalytics.isAppWebViewInterface && transformHelper.extension.addUCJavaScriptInterface && s == "Landroid/webkit/JavascriptInterface;") {
-                    shouldAddUCJS = true
+                } else if (classNameAnalytics.isAppWebViewInterface && s == "Landroid/webkit/JavascriptInterface;") {
+                    shouldAddUCJS = transformHelper.extension.addUCJavaScriptInterface
+                    shouldAddXWalkJS =  transformHelper.extension.addXWalkJavaScriptInterface
                 }
 
                 return super.visitAnnotation(s, b)
