@@ -16,10 +16,9 @@ public class SensorsPushInjected {
      *
      * @param methodVisitor MethodVisitor
      * @param superName 父类名
-     * @param className 类名
      * @param nameDesc 描述
      */
-    public static void handlePush(MethodVisitor methodVisitor, String superName, String className, String nameDesc, ClassLoader classLoader) {
+    public static void handlePush(MethodVisitor methodVisitor, String superName, String nameDesc) {
         if ("cn/jpush/android/service/JPushMessageReceiver".equals(superName)
                 && "onNotifyMessageOpened(Landroid/content/Context;Lcn/jpush/android/api/NotificationMessage;)V".equals(nameDesc)) {
             handleJPush(methodVisitor);

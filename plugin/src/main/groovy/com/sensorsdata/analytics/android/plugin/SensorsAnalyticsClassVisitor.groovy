@@ -33,7 +33,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
     private String mSuperName
     private String[] mInterfaces
     private HashSet<String> visitedFragMethods = new HashSet<>()// 无需判空
-    private Boolean isFoundOnNewIntent = null
+    private boolean isFoundOnNewIntent = false
     private ClassVisitor classVisitor
 
     private SensorsAnalyticsTransformHelper transformHelper
@@ -106,8 +106,8 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
     @Override
     void visitEnd() {
         super.visitEnd()
-        if (!transformHelper.extension.disableTrackPush && isFoundOnNewIntent != null && !isFoundOnNewIntent && mSuperName == "android/app/Activity") {
-            SensorsPushInjected.addOnNewIntent(classVisitor);
+        if (!transformHelper.extension.disableTrackPush && !isFoundOnNewIntent && mSuperName == "android/app/Activity") {
+            SensorsPushInjected.addOnNewIntent(classVisitor)
         }
 
         if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)) {
@@ -185,11 +185,8 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 return null
             }
         }
-        if (mSuperName == "android/app/Activity") {
-            isFoundOnNewIntent = false
-            if (name == "onNewIntent" && desc == "(Landroid/content/Intent;)V") {
-                isFoundOnNewIntent = true
-            }
+        if (mSuperName == "android/app/Activity" && name == "onNewIntent" && desc == "(Landroid/content/Intent;)V") {
+            isFoundOnNewIntent = true
         }
 
         MethodVisitor methodVisitor = cv.visitMethod(access, name, desc, signature, exceptions)
@@ -265,7 +262,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 nameDesc = name + desc
                 // Hook Push
                 if (!SensorsAnalyticsUtil.isStatic(access) && !transformHelper.extension.disableTrackPush) {
-                    SensorsPushInjected.handlePush(methodVisitor, mSuperName, mClassName, nameDesc, transformHelper.urlClassLoader)
+                    SensorsPushInjected.handlePush(methodVisitor, mSuperName, nameDesc)
                 }
 
                 pubAndNoStaticAccess = SensorsAnalyticsUtil.isPublic(access) && !SensorsAnalyticsUtil.isStatic(access)
