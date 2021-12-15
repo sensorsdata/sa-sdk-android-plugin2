@@ -30,6 +30,7 @@ class SensorsAnalyticsExtension {
     public boolean addXWalkJavaScriptInterface = false
     public boolean lambdaParamOptimize = false
     public boolean disableTrackPush = false
+    public boolean disableCheckSDK = false
     public ArrayList<String> exclude = []
     public ArrayList<String> include = []
 
@@ -71,6 +72,7 @@ class SensorsAnalyticsExtension {
                 "\taddXWalkJavaScriptInterface=" + addXWalkJavaScriptInterface + "\n" +
                 "\tlambdaParamOptimize=" + lambdaParamOptimize + "\n" +
                 "\tlambdaEnabled=" + lambdaEnabled + "\n" +
+                "\tdisableCheckSDK=" + disableCheckSDK + "\n" +
                 "\texclude=[" + excludeBuilder.toString() + "]" + "\n" +
                 "\tinclude=[" + includeBuilder.toString() + "]" + "\n" +
                 "\tsdk {\n" + sdk + "\n" +

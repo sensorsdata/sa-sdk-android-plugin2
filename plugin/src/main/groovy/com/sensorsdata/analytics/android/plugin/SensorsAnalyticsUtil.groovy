@@ -57,6 +57,7 @@ class SensorsAnalyticsUtil {
         targetFragmentClass.add('androidx/fragment/app/Fragment')
         targetFragmentClass.add('androidx/fragment/app/ListFragment')
         targetFragmentClass.add('androidx/fragment/app/DialogFragment')
+        targetFragmentClass.add('androidx/appcompat/app/AppCompatDialogFragment')
 
         targetActivityClass.add('android/app/Activity')
         targetActivityClass.add('android/support/v7/app/AppCompatActivity')

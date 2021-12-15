@@ -488,6 +488,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                  * 目前支持以下 Fragment 页面浏览事件：
                  * android/app/Fragment，android/app/ListFragment， android/app/DialogFragment，
                  * android/support/v4/app/Fragment，android/support/v4/app/ListFragment，android/support/v4/app/DialogFragment，
+                 * androidx/appcompat/app/AppCompatDialogFragment
                  * androidx/fragment/app/Fragment，androidx/fragment/app/ListFragment，androidx/fragment/app/DialogFragment
                  */
                 if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)) {

@@ -48,7 +48,7 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.4.4"
+    public static final String VERSION = "3.4.5"
     public static final String MIN_SDK_VERSION = "5.4.3"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
@@ -186,8 +186,16 @@ class SensorsAnalyticsTransform extends Transform {
             ProtectionDomain pd = sdkClazz.getProtectionDomain()
             CodeSource cs = pd.getCodeSource()
             sensorsSdkJarPath = cs.getLocation().toURI().getPath()
-        } catch (Throwable throwable) {
-            Logger.error("Can not load 'com.sensorsdata.analytics.android.sdk.SensorsDataAPI' class: ${throwable.localizedMessage}")
+        } catch (ClassNotFoundException ignored) {
+            if (!transformHelper.extension.disableCheckSDK) {
+                throw new IllegalStateException("未检测到神策 Android SDK，请参考如下文档检查集成步骤是否正确：\n" +
+                        "https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_android_basic-32506144.html\n" +
+                        "如需关闭此提示，请添加插件配置: disableCheckSdk=true")
+            } else {
+                Logger.warn("Can not load find SensorsData SDK jar's path.")
+            }
+        } catch (Throwable ignored) {
+            Logger.warn("Can not load find SensorsData SDK jar's path.")
         }
     }
 
@@ -418,7 +426,7 @@ class SensorsAnalyticsTransform extends Transform {
             ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS)
             ClassVisitor classVisitor = new SensorsAnalyticsClassVisitor(classWriter, classNameAnalytics, transformHelper)
             ClassReader cr = new ClassReader(srcClass)
-            cr.accept(classVisitor, ClassReader.EXPAND_FRAMES + ClassReader.SKIP_FRAMES)
+            cr.accept(classVisitor, ClassReader.EXPAND_FRAMES)
             return classWriter.toByteArray()
         } catch (Exception ex) {
             Logger.error("$classNameAnalytics.className 类执行 modifyClass 方法出现异常")
