@@ -1,6 +1,6 @@
 /*
  * Created by renqingyou on 2018/12/01.
- * Copyright 2015－2021 Sensors Data Inc.
+ * Copyright 2015－2022 Sensors Data Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,8 @@ class SensorsAnalyticsTransformHelper {
                                              "com.getui",
                                              "com.xiaomi.mipush.sdk",
                                              "com.heytap.msp.push",
-                                             'com.bumptech.glide'])
+                                             'com.bumptech.glide',
+                                             'com.tencent.tinker'])
     HashSet<String> include = new HashSet<>(['butterknife.internal.DebouncingOnClickListener',
                                              'com.jakewharton.rxbinding.view.ViewClickOnSubscribe',
                                              'com.facebook.react.uimanager.NativeViewHierarchyManager'])
