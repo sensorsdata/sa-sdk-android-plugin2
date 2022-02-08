@@ -24,6 +24,7 @@ class SensorsAnalyticsSDKExtension {
     boolean disableAndroidID = false
     boolean disableMacAddress = false
     boolean disableCarrier = false
+    boolean disableOAID = false
 
     @Override
     String toString() {
@@ -32,7 +33,8 @@ class SensorsAnalyticsSDKExtension {
                 "\t\tdisableJsInterface=" + disableJsInterface + "\n" +
                 "\t\tdisableAndroidID=" + disableAndroidID + "\n" +
                 "\t\tdisableMacAddress=" + disableMacAddress + "\n" +
-                "\t\tdisableCarrier=" + disableCarrier
+                "\t\tdisableCarrier=" + disableCarrier + "\n" +
+                "\t\tdisableOAID=" + disableOAID
     }
 }
 

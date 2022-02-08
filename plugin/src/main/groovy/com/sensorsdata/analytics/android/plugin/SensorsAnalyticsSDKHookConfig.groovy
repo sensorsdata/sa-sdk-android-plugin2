@@ -76,6 +76,14 @@ class SensorsAnalyticsSDKHookConfig {
         methodCells.put(methodName, macMethodCells)
     }
 
+    void disableOAID(String methodName) {
+        def oaid = new SensorsAnalyticsMethodCell('getOAID', '(Landroid/content/Context;)Ljava/lang/String;', 'createGetOAID')
+        def methods = [oaid]
+        def oaidMethodCells = new HashMap<String, ArrayList<SensorsAnalyticsMethodCell>>()
+        oaidMethodCells.put("com/sensorsdata/analytics/android/sdk/advert/utils/OaidHelper", methods)
+        methodCells.put(methodName, oaidMethodCells)
+    }
+
     //todo 扩展
 
     void createGetIMEI(ClassVisitor classVisitor, SensorsAnalyticsMethodCell methodCell) {
@@ -156,6 +164,15 @@ class SensorsAnalyticsSDKHookConfig {
 
     void createGetDeviceID(ClassVisitor classVisitor, SensorsAnalyticsMethodCell methodCell) {
         def mv = classVisitor.visitMethod(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC, methodCell.name, methodCell.desc, null, null)
+        mv.visitCode()
+        mv.visitLdcInsn("")
+        mv.visitInsn(Opcodes.ARETURN)
+        mv.visitMaxs(1, 1)
+        mv.visitEnd()
+    }
+
+    void createGetOAID(ClassVisitor classVisitor, SensorsAnalyticsMethodCell methodCell) {
+        def mv = classVisitor.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, methodCell.name, methodCell.desc, null, null)
         mv.visitCode()
         mv.visitLdcInsn("")
         mv.visitInsn(Opcodes.ARETURN)

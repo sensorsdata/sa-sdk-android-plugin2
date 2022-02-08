@@ -490,6 +490,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                  * android/support/v4/app/Fragment，android/support/v4/app/ListFragment，android/support/v4/app/DialogFragment，
                  * androidx/appcompat/app/AppCompatDialogFragment
                  * androidx/fragment/app/Fragment，androidx/fragment/app/ListFragment，androidx/fragment/app/DialogFragment
+                 * com/google/android/material/bottomsheet/BottomSheetDialogFragment
                  */
                 if (SensorsAnalyticsUtil.isInstanceOfFragment(mSuperName)) {
                     SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsFragmentHookConfig.FRAGMENT_METHODS.get(nameDesc)
