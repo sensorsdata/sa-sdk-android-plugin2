@@ -17,13 +17,15 @@
 package com.sensorsdata.analytics.android.plugin
 
 class ClassNameAnalytics {
-
+    private static final String PACKAGE_START = "com.sensorsdata.analytics"
+    private static final String KEY_KEYBOARD = "KeyboardViewUtil"
     public String className
     boolean isShouldModify = false
     boolean isSensorsDataAPI = false
     boolean isSensorsDataUtils = false
     boolean isOAIDHelper = false
     boolean isSALog = false
+    boolean isKeyboardViewUtil = false
     def methodCells = new ArrayList<SensorsAnalyticsMethodCell>()
     boolean isAppWebViewInterface = false
 
@@ -35,10 +37,11 @@ class ClassNameAnalytics {
         isSALog = (className == 'com.sensorsdata.analytics.android.sdk.SALog')
         isAppWebViewInterface = ((className == 'com.sensorsdata.analytics.android.sdk.AppWebViewInterface')
                 || (className == 'com.sensorsdata.analytics.android.sdk.visual.WebViewVisualInterface'))
+        isKeyboardViewUtil = (className.startsWith(PACKAGE_START) && className.endsWith(KEY_KEYBOARD))
     }
 
     boolean isSDKFile() {
-        return isSALog || isSensorsDataAPI || isSensorsDataUtils || isAppWebViewInterface || isOAIDHelper
+        return isSALog || isSensorsDataAPI || isSensorsDataUtils || isAppWebViewInterface || isOAIDHelper || isKeyboardViewUtil
     }
 
     boolean isLeanback() {

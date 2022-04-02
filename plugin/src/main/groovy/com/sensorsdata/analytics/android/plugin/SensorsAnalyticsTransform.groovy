@@ -48,7 +48,7 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.4.7"
+    public static final String VERSION = "3.4.8"
     public static final String MIN_SDK_VERSION = "5.4.3"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
@@ -190,7 +190,7 @@ class SensorsAnalyticsTransform extends Transform {
             if (!transformHelper.extension.disableCheckSDK) {
                 throw new IllegalStateException("未检测到神策 Android SDK，请参考如下文档检查集成步骤是否正确：\n" +
                         "https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_android_basic-32506144.html\n" +
-                        "如需关闭此提示，请添加插件配置: disableCheckSdk=true")
+                        "如需关闭此提示，请添加插件配置: disableCheckSDK=true")
             } else {
                 Logger.warn("Can not load find SensorsData SDK jar's path.")
             }

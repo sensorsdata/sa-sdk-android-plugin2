@@ -68,7 +68,6 @@ class SensorsAnalyticsUtil {
         for (className in SensorsAnalyticsTransformHelper.special) {
             specialClass.add(className.replace('.', '/'))
         }
-
     }
 
     static boolean isPublic(int access) {

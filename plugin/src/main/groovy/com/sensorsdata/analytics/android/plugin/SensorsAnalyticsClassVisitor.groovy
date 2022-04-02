@@ -475,6 +475,9 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                 if (classNameAnalytics.isSensorsDataAPI && "ANDROID_PLUGIN_VERSION" == fieldName && opcode == PUTSTATIC) {
                     methodVisitor.visitLdcInsn(SensorsAnalyticsTransform.VERSION)
                 }
+                if (classNameAnalytics.isKeyboardViewUtil && !transformHelper.extension.disableTrackKeyboard && "isSensorsCheckKeyboard" == fieldName && opcode == PUTSTATIC) {
+                    methodVisitor.visitInsn(ICONST_0);
+                }
                 super.visitFieldInsn(opcode, owner, fieldName, fieldDesc)
             }
 
@@ -829,7 +832,7 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
                     }
                 } else if (classNameAnalytics.isAppWebViewInterface && s == "Landroid/webkit/JavascriptInterface;") {
                     shouldAddUCJS = transformHelper.extension.addUCJavaScriptInterface
-                    shouldAddXWalkJS =  transformHelper.extension.addXWalkJavaScriptInterface
+                    shouldAddXWalkJS = transformHelper.extension.addXWalkJavaScriptInterface
                 }
 
                 return super.visitAnnotation(s, b)

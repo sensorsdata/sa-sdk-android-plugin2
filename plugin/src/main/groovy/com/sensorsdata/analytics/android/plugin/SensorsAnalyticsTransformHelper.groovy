@@ -28,6 +28,7 @@ class SensorsAnalyticsTransformHelper {
     boolean disableSensorsAnalyticsMultiThread
     boolean disableSensorsAnalyticsIncremental
     boolean isHookOnMethodEnter
+    HashSet<String> ignoreClass = new HashSet<>(['keyboard'])
     HashSet<String> exclude = new HashSet<>(['com.sensorsdata.analytics.android.sdk',
                                              'android.support',
                                              'androidx',
@@ -73,9 +74,10 @@ class SensorsAnalyticsTransformHelper {
     }
 
     File androidJar() throws FileNotFoundException {
-        File jar = new File(getSdkJarDir(), "android.jar")
+        String path = getSdkJarDir()
+        File jar = new File(path, "android.jar")
         if (!jar.exists()) {
-            throw new FileNotFoundException("Android jar not found!")
+            throw new FileNotFoundException("Android jar not found!\r\n 请确定路径 " + path + " 下是否存在 android.jar 文件")
         }
         return jar
     }
@@ -123,7 +125,8 @@ class SensorsAnalyticsTransformHelper {
                     }
             }
             if (classNameAnalytics.methodCells.size() > 0 || classNameAnalytics.isSensorsDataAPI
-                    || (classNameAnalytics.isAppWebViewInterface && (extension.addUCJavaScriptInterface || extension.addXWalkJavaScriptInterface))) {
+                    || (classNameAnalytics.isAppWebViewInterface && (extension.addUCJavaScriptInterface || extension.addXWalkJavaScriptInterface))
+                    || classNameAnalytics.isKeyboardViewUtil) {
                 classNameAnalytics.isShouldModify = true
             }
         } else if (!classNameAnalytics.isAndroidGenerated()) {
@@ -147,6 +150,14 @@ class SensorsAnalyticsTransformHelper {
                         if (className.startsWith(pkgName)) {
                             classNameAnalytics.isShouldModify = false
                             break
+                        }
+                    }
+                    if (classNameAnalytics.isShouldModify && extension.disableTrackKeyboard) {
+                        for (String ignore : ignoreClass) {
+                            if (className.toLowerCase().contains(ignore)) {
+                                classNameAnalytics.isShouldModify = false
+                                break
+                            }
                         }
                     }
                 }

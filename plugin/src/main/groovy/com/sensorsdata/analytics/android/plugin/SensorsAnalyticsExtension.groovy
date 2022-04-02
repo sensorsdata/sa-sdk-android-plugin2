@@ -31,6 +31,7 @@ class SensorsAnalyticsExtension {
     public boolean lambdaParamOptimize = false
     public boolean disableTrackPush = false
     public boolean disableCheckSDK = false
+    public boolean disableTrackKeyboard = true
     public ArrayList<String> exclude = []
     public ArrayList<String> include = []
 
@@ -73,6 +74,7 @@ class SensorsAnalyticsExtension {
                 "\tlambdaParamOptimize=" + lambdaParamOptimize + "\n" +
                 "\tlambdaEnabled=" + lambdaEnabled + "\n" +
                 "\tdisableCheckSDK=" + disableCheckSDK + "\n" +
+                "\tdisableHookKeyboard=" + disableTrackKeyboard + "\n" +
                 "\texclude=[" + excludeBuilder.toString() + "]" + "\n" +
                 "\tinclude=[" + includeBuilder.toString() + "]" + "\n" +
                 "\tsdk {\n" + sdk + "\n" +
