@@ -17,6 +17,8 @@
 package com.sensorsdata.analytics.android.plugin
 
 import com.android.build.gradle.AppExtension
+import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.LibraryExtension
 import com.sensorsdata.analytics.android.plugin.utils.VersionUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -38,13 +40,23 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
         boolean isAndroidTv = Boolean.parseBoolean(properties.getOrDefault("sensorsAnalytics.isAndroidTv", "false"))
 
         if (!disableSensorsAnalyticsPlugin) {
-            AppExtension appExtension = project.extensions.findByType(AppExtension.class)
-            SensorsAnalyticsTransformHelper transformHelper = new SensorsAnalyticsTransformHelper(extension, appExtension)
-            transformHelper.disableSensorsAnalyticsIncremental = disableSensorsAnalyticsIncrementalBuild
-            transformHelper.disableSensorsAnalyticsMultiThread = disableSensorsAnalyticsMultiThreadBuild
-            transformHelper.isHookOnMethodEnter = isHookOnMethodEnter
-            VersionUtils.isAndroidTv = isAndroidTv
-            appExtension.registerTransform(new SensorsAnalyticsTransform(transformHelper))
+            BaseExtension baseExtension
+            if (project.getPlugins().hasPlugin("com.android.application")) {
+                baseExtension = project.extensions.findByType(AppExtension.class)
+            } else if (project.getPlugins().hasPlugin("com.android.library")) {
+                baseExtension = project.extensions.findByType(LibraryExtension.class)
+            }
+            if (null != baseExtension) {
+                SensorsAnalyticsTransformHelper transformHelper = new SensorsAnalyticsTransformHelper(extension, baseExtension)
+                transformHelper.disableSensorsAnalyticsIncremental = disableSensorsAnalyticsIncrementalBuild
+                transformHelper.disableSensorsAnalyticsMultiThread = disableSensorsAnalyticsMultiThreadBuild
+                transformHelper.isHookOnMethodEnter = isHookOnMethodEnter
+                VersionUtils.isAndroidTv = isAndroidTv
+
+                baseExtension.registerTransform(new SensorsAnalyticsTransform(transformHelper, baseExtension instanceof LibraryExtension))
+            } else {
+                Logger.error("------------神策 plugin 当前不支持您的项目--------------")
+            }
         } else {
             Logger.error("------------您已关闭了神策插件--------------")
         }

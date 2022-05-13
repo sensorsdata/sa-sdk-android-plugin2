@@ -30,6 +30,7 @@ import com.android.build.api.transform.TransformOutputProvider
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.android.ide.common.internal.WaitableExecutor
 import com.sensorsdata.analytics.android.plugin.utils.VersionUtils
+import com.sensorsdata.analytics.android.plugin.version.SensorsDataSDKVersionHelper
 import groovy.io.FileType
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.io.FileUtils
@@ -48,16 +49,20 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.4.8"
+    public static final String VERSION = "3.4.9"
     public static final String MIN_SDK_VERSION = "5.4.3"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
     // “com.sensorsdata.analytics.android.sdk.SensorsDataAPI” 类所在路径
     private String sensorsSdkJarPath
     private volatile boolean isFoundSDKJar = false
+    private boolean isProjectLibrary = false
+    private SensorsDataSDKVersionHelper sdkVersionHelper;
 
-    SensorsAnalyticsTransform(SensorsAnalyticsTransformHelper transformHelper) {
+    SensorsAnalyticsTransform(SensorsAnalyticsTransformHelper transformHelper, boolean isProjectLibrary) {
         this.transformHelper = transformHelper
+        this.isProjectLibrary = isProjectLibrary
+        this.sdkVersionHelper = new SensorsDataSDKVersionHelper()
         if (!transformHelper.disableSensorsAnalyticsMultiThread) {
             waitableExecutor = WaitableExecutor.useGlobalSharedThreadPool()
         }
@@ -75,7 +80,7 @@ class SensorsAnalyticsTransform extends Transform {
 
     @Override
     Set<QualifiedContent.Scope> getScopes() {
-        return TransformManager.SCOPE_FULL_PROJECT
+        return isProjectLibrary ? TransformManager.PROJECT_ONLY : TransformManager.SCOPE_FULL_PROJECT
     }
 
     @Override
@@ -177,7 +182,9 @@ class SensorsAnalyticsTransform extends Transform {
         transformHelper.urlClassLoader = urlClassLoader
         checkRNState()
         VersionUtils.loadAndroidSDKVersion(urlClassLoader)
-        checkSensorsSDK()
+        if(!isProjectLibrary) {
+            checkSensorsSDK()
+        }
     }
 
     private void checkSensorsSDK() {
@@ -424,7 +431,7 @@ class SensorsAnalyticsTransform extends Transform {
     private byte[] modifyClass(byte[] srcClass, ClassNameAnalytics classNameAnalytics) {
         try {
             ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS)
-            ClassVisitor classVisitor = new SensorsAnalyticsClassVisitor(classWriter, classNameAnalytics, transformHelper)
+            ClassVisitor classVisitor = new SensorsAnalyticsClassVisitor(classWriter, classNameAnalytics, transformHelper, sdkVersionHelper)
             ClassReader cr = new ClassReader(srcClass)
             cr.accept(classVisitor, ClassReader.EXPAND_FRAMES)
             return classWriter.toByteArray()

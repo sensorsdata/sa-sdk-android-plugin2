@@ -20,6 +20,8 @@ import com.sensorsdata.analytics.android.plugin.push.SensorsAnalyticsPushMethodV
 import com.sensorsdata.analytics.android.plugin.push.SensorsPushInjected
 import com.sensorsdata.analytics.android.plugin.hook.config.SensorsFragmentHookConfig
 import com.sensorsdata.analytics.android.plugin.utils.VersionUtils
+import com.sensorsdata.analytics.android.plugin.version.SensorsAnalyticsVersionFieldVisitor
+import com.sensorsdata.analytics.android.plugin.version.SensorsDataSDKVersionHelper
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
@@ -50,16 +52,19 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
     // 是否是 AndroidTV 版本
     private boolean isAndroidTv
 
+    private SensorsDataSDKVersionHelper sdkVersionHelper;
+
     @Override
     protected Object clone() throws CloneNotSupportedException {
         return super.clone()
     }
 
-    SensorsAnalyticsClassVisitor(final ClassVisitor classVisitor, ClassNameAnalytics classNameAnalytics, SensorsAnalyticsTransformHelper transformHelper) {
+    SensorsAnalyticsClassVisitor(final ClassVisitor classVisitor, ClassNameAnalytics classNameAnalytics, SensorsAnalyticsTransformHelper transformHelper, SensorsDataSDKVersionHelper sdkVersionHelper) {
         super(SensorsAnalyticsUtil.ASM_VERSION, classVisitor)
         this.classVisitor = classVisitor
         this.classNameAnalytics = classNameAnalytics
         this.transformHelper = transformHelper
+        this.sdkVersionHelper = sdkVersionHelper;
         isAndroidTv = VersionUtils.isTvVersion()
     }
 
@@ -145,26 +150,11 @@ class SensorsAnalyticsClassVisitor extends ClassVisitor {
 
     @Override
     FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-        if (classNameAnalytics.isSensorsDataAPI) {
-            if ('VERSION' == name) {
-                String version = (String) value
-                if (SensorsAnalyticsUtil.compareVersion(SensorsAnalyticsTransform.MIN_SDK_VERSION, version) > 0) {
-                    String errMessage = "你目前集成的神策埋点 SDK 版本号为 v${version}，请升级到 v${SensorsAnalyticsTransform.MIN_SDK_VERSION} 及以上的版本。详情请参考：https://github.com/sensorsdata/sa-sdk-android"
-                    Logger.error(errMessage)
-                    throw new Error(errMessage)
-                }
-            } else if ('MIN_PLUGIN_VERSION' == name) {
-                String minPluginVersion = (String) value
-                if (minPluginVersion != "" && minPluginVersion != null) {
-                    if (SensorsAnalyticsUtil.compareVersion(SensorsAnalyticsTransform.VERSION, minPluginVersion) < 0) {
-                        String errMessage = "你目前集成的神策插件版本号为 v${SensorsAnalyticsTransform.VERSION}，请升级到 v${minPluginVersion} 及以上的版本。详情请参考：https://github.com/sensorsdata/sa-sdk-android-plugin2"
-                        Logger.error(errMessage)
-                        throw new Error(errMessage)
-                    }
-                }
-            }
+        FieldVisitor fieldVisitor = super.visitField(access, name, descriptor, signature, value)
+        if (classNameAnalytics.isSensorsDataAPI || classNameAnalytics.isSensorsDataVersion) {
+            return new SensorsAnalyticsVersionFieldVisitor(SensorsAnalyticsUtil.ASM_VERSION, fieldVisitor, name, value, sdkVersionHelper, mClassName, classNameAnalytics)
         }
-        return super.visitField(access, name, descriptor, signature, value)
+        return fieldVisitor
     }
 
     /**

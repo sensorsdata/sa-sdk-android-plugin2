@@ -16,12 +16,12 @@
  */
 package com.sensorsdata.analytics.android.plugin
 
-import com.android.build.gradle.AppExtension
+import com.android.build.gradle.BaseExtension
 
 class SensorsAnalyticsTransformHelper {
 
     SensorsAnalyticsExtension extension
-    AppExtension android
+    BaseExtension android
     RN_STATE rnState = RN_STATE.NOT_FOUND
     String rnVersion = ""
     SensorsAnalyticsSDKHookConfig sensorsAnalyticsHookConfig
@@ -68,7 +68,7 @@ class SensorsAnalyticsTransformHelper {
                                                    'android.support.v7.widget.ActionMenuPresenter$OverflowMenuButton']
     URLClassLoader urlClassLoader
 
-    SensorsAnalyticsTransformHelper(SensorsAnalyticsExtension extension, AppExtension android) {
+    SensorsAnalyticsTransformHelper(SensorsAnalyticsExtension extension, BaseExtension android) {
         this.extension = extension
         this.android = android
     }
@@ -126,7 +126,7 @@ class SensorsAnalyticsTransformHelper {
             }
             if (classNameAnalytics.methodCells.size() > 0 || classNameAnalytics.isSensorsDataAPI
                     || (classNameAnalytics.isAppWebViewInterface && (extension.addUCJavaScriptInterface || extension.addXWalkJavaScriptInterface))
-                    || classNameAnalytics.isKeyboardViewUtil) {
+                    || classNameAnalytics.isKeyboardViewUtil || classNameAnalytics.isSensorsDataVersion) {
                 classNameAnalytics.isShouldModify = true
             }
         } else if (!classNameAnalytics.isAndroidGenerated()) {
