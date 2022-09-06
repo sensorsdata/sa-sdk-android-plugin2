@@ -16,10 +16,11 @@
  */
 package com.sensorsdata.analytics.android.plugin
 
+import com.sensorsdata.analytics.android.plugin.viewclick.SensorsAnalyticsMethodCell
 import org.objectweb.asm.Opcodes
 
 class SensorsAnalyticsHookConfig {
-    public static final String SENSORS_ANALYTICS_API = "com/sensorsdata/analytics/android/sdk/SensorsDataAutoTrackHelper"
+    public static final String SENSORS_ANALYTICS_API = "com/sensorsdata/analytics/android/autotrack/aop/SensorsDataAutoTrackHelper"
     public final static HashMap<String, SensorsAnalyticsMethodCell> INTERFACE_METHODS = new HashMap<>()
     public final static HashMap<String, SensorsAnalyticsMethodCell> CLASS_METHODS = new HashMap<>()
 

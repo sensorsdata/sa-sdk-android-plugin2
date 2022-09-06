@@ -14,9 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.sensorsdata.analytics.android.plugin
+package com.sensorsdata.analytics.android.plugin.js
 
-
+import com.sensorsdata.analytics.android.plugin.utils.Logger
+import com.sensorsdata.analytics.android.plugin.SensorsAnalyticsHookConfig
+import com.sensorsdata.analytics.android.plugin.SensorsAnalyticsTransformHelper
+import com.sensorsdata.analytics.android.plugin.SensorsAnalyticsUtil
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -30,7 +33,7 @@ import org.objectweb.asm.commons.AdviceAdapter
  * 否则就判断 owner 是否是 WebView 的子类，如果是就处理，否则不处理。
  */
 class SensorsAnalyticsWebViewMethodVisitor extends AdviceAdapter implements Opcodes {
-
+    private static final String JS_BRIDGE_API = "com/sensorsdata/analytics/android/sdk/jsbridge/JSHookAop"
     private SensorsAnalyticsTransformHelper transformHelper
     private Class webView
     private Class x5WebView
@@ -99,8 +102,7 @@ class SensorsAnalyticsWebViewMethodVisitor extends AdviceAdapter implements Opco
                             loadLocal(tmp)
                         }
                         desc = SensorsAnalyticsUtil.appendDescBeforeGiven(desc, VIEW_DESC)
-                        //为保持新 SDK 使用旧版插件问题，会使用新 SDK loadUrl + 2 后缀的方法
-                        mv.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, name + "2", desc, false)
+                        mv.visitMethodInsn(INVOKESTATIC, JS_BRIDGE_API, name, desc, false)
                     }
                     return
                 }

@@ -1,11 +1,10 @@
 package com.sensorsdata.analytics.android.plugin.version;
 
 import com.sensorsdata.analytics.android.plugin.ClassNameAnalytics;
-import com.sensorsdata.analytics.android.plugin.Logger;
+import com.sensorsdata.analytics.android.plugin.utils.Logger;
 import com.sensorsdata.analytics.android.plugin.SensorsAnalyticsTransform;
 import com.sensorsdata.analytics.android.plugin.SensorsAnalyticsUtil;
 import com.sensorsdata.analytics.android.plugin.utils.TextUtil;
-import com.sensorsdata.analytics.android.plugin.version.SensorsDataSDKVersionHelper;
 
 import org.objectweb.asm.FieldVisitor;
 
@@ -26,7 +25,7 @@ public class SensorsAnalyticsVersionFieldVisitor extends FieldVisitor {
 
     @Override
     public void visitEnd() {
-        if (mClassNameAnalytics.getIsSensorsDataAPI()) {
+        if (mClassNameAnalytics.isSensorsDataAPI) {
             if ("VERSION".equals(mName)) {
                 String version = (String) mValue;
                 if (SensorsAnalyticsUtil.compareVersion(SensorsAnalyticsTransform.MIN_SDK_VERSION, version) > 0) {
@@ -48,7 +47,7 @@ public class SensorsAnalyticsVersionFieldVisitor extends FieldVisitor {
                     }
                 }
             }
-        } else if (mClassNameAnalytics.getIsSensorsDataVersion()) {
+        } else if (mClassNameAnalytics.isSensorsDataVersion) {
             if (SensorsDataSDKVersionHelper.VERSION_KEY_CURRENT_VERSION.equals(mName)) {
                 String version = (String) mValue;
                 String message = mSdkVersionHelper.getMessageBySDKCurrentVersion(mClassName, version);

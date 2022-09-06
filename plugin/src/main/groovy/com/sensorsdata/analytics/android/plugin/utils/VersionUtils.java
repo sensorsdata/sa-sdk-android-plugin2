@@ -1,6 +1,6 @@
 package com.sensorsdata.analytics.android.plugin.utils;
 
-import com.sensorsdata.analytics.android.plugin.Logger;
+import com.sensorsdata.analytics.android.plugin.utils.Logger;
 
 import java.lang.reflect.Field;
 import java.net.URLClassLoader;

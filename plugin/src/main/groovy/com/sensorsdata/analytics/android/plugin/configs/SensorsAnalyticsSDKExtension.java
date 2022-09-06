@@ -14,27 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.sensorsdata.analytics.android.plugin
+package com.sensorsdata.analytics.android.plugin.configs;
 
-class SensorsAnalyticsSDKExtension {
+public class SensorsAnalyticsSDKExtension {
     // 同SensorsAnalyticsSDKHookConfig中方法对应, disableIMEI,disableLog,disableJsInterface，disableAndroidID
-    boolean disableIMEI = false
-    boolean disableLog = false
-    boolean disableJsInterface = false
-    boolean disableAndroidID = false
-    boolean disableMacAddress = false
-    boolean disableCarrier = false
-    boolean disableOAID = false
+    public boolean disableIMEI = false;
+    public boolean disableLog = false;
+    public boolean disableJsInterface = false;
+    public boolean disableAndroidID = false;
+    public boolean disableMacAddress = false;
+    public boolean disableCarrier = false;
+    public boolean disableOAID = false;
 
     @Override
-    String toString() {
+    public String toString() {
         return "\t\tdisableIMEI=" + disableIMEI + "\n" +
                 "\t\tdisableLog=" + disableLog + "\n" +
                 "\t\tdisableJsInterface=" + disableJsInterface + "\n" +
                 "\t\tdisableAndroidID=" + disableAndroidID + "\n" +
                 "\t\tdisableMacAddress=" + disableMacAddress + "\n" +
                 "\t\tdisableCarrier=" + disableCarrier + "\n" +
-                "\t\tdisableOAID=" + disableOAID
+                "\t\tdisableOAID=" + disableOAID;
     }
 }
 

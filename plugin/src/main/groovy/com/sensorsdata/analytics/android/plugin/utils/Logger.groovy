@@ -14,8 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.sensorsdata.analytics.android.plugin
+package com.sensorsdata.analytics.android.plugin.utils
 
+
+import com.sensorsdata.analytics.android.plugin.SensorsAnalyticsTransform
 import org.objectweb.asm.Opcodes
 
 import java.lang.reflect.Array

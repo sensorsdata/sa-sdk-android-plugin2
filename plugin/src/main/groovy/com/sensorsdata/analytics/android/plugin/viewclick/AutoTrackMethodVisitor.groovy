@@ -14,19 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.sensorsdata.analytics.android.plugin
+package com.sensorsdata.analytics.android.plugin.viewclick
 
+import com.sensorsdata.analytics.android.plugin.utils.Logger
+import com.sensorsdata.analytics.android.plugin.SensorsAnalyticsUtil
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.Attribute
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.commons.AdviceAdapter
 
-class SensorsAnalyticsDefaultMethodVisitor extends AdviceAdapter {
+class AutoTrackMethodVisitor extends AdviceAdapter {
 
     String methodName
 
-    SensorsAnalyticsDefaultMethodVisitor(MethodVisitor mv, int access, String name, String desc) {
+    AutoTrackMethodVisitor(MethodVisitor mv, int access, String name, String desc) {
         super(SensorsAnalyticsUtil.ASM_VERSION, mv, access, name, desc)
         methodName = name
         if (Logger.debug) {

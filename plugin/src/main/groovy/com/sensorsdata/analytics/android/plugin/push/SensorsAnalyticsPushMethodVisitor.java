@@ -29,9 +29,23 @@ import java.util.List;
 
 public class SensorsAnalyticsPushMethodVisitor extends AdviceAdapter {
     private static final String PENDING_INTENT_OWNER = "android/app/PendingIntent";
-
-    public SensorsAnalyticsPushMethodVisitor(MethodVisitor methodVisitor, int access, String name, String descriptor) {
+    private final String mNameDesc;
+    private final MethodVisitor mMethodVisitor;
+    private final String mSuperName;
+    public SensorsAnalyticsPushMethodVisitor(MethodVisitor methodVisitor, int access, String name, String descriptor, String superName) {
         super(SensorsAnalyticsUtil.ASM_VERSION, methodVisitor, access, name, descriptor);
+        this.mMethodVisitor = methodVisitor;
+        mNameDesc = name + descriptor;
+        mSuperName = superName;
+    }
+
+    @Override
+    protected void onMethodEnter() {
+        super.onMethodEnter();
+        // Hook Push
+        if (!SensorsAnalyticsUtil.isStatic(methodAccess)) {
+            SensorsPushInjected.handlePush(mMethodVisitor, mSuperName, mNameDesc);
+        }
     }
 
     @Override

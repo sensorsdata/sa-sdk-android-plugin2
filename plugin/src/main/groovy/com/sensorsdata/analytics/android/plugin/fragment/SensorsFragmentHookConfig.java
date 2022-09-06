@@ -1,6 +1,6 @@
-package com.sensorsdata.analytics.android.plugin.hook.config;
+package com.sensorsdata.analytics.android.plugin.fragment;
 
-import com.sensorsdata.analytics.android.plugin.SensorsAnalyticsMethodCell;
+import com.sensorsdata.analytics.android.plugin.viewclick.SensorsAnalyticsMethodCell;
 
 import org.objectweb.asm.Opcodes;
 
@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 
 public class SensorsFragmentHookConfig {
-    public static final String SENSORS_FRAGMENT_TRACK_HELPER_API = "com/sensorsdata/analytics/android/sdk/autotrack/aop/FragmentTrackHelper";
+    public static final String SENSORS_FRAGMENT_TRACK_HELPER_API = "com/sensorsdata/analytics/android/autotrack/aop/FragmentTrackHelper";
 
     /**
      * Fragment中的方法

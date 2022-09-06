@@ -16,6 +16,7 @@
  */
 package com.sensorsdata.analytics.android.plugin
 
+import com.sensorsdata.analytics.android.plugin.core.HookConstant
 import com.sensorsdata.analytics.android.plugin.version.SensorsDataSDKVersionHelper
 
 class ClassNameAnalytics {
@@ -23,23 +24,22 @@ class ClassNameAnalytics {
     private static final String KEY_KEYBOARD = "KeyboardViewUtil"
     public String className
     boolean isShouldModify = false
-    boolean isSensorsDataAPI = false
-    boolean isSensorsDataUtils = false
-    boolean isOAIDHelper = false
-    boolean isSensorsDataVersion = false
-    boolean isSALog = false
-    boolean isKeyboardViewUtil = false
-    def methodCells = new ArrayList<SensorsAnalyticsMethodCell>()
-    boolean isAppWebViewInterface = false
+    public boolean isSensorsDataAPI = false
+    public boolean isSensorsDataUtils = false
+    public boolean isOAIDHelper = false
+    public boolean isSensorsDataVersion = false
+    public boolean isSALog = false
+    public boolean isKeyboardViewUtil = false
+    public boolean isAppWebViewInterface = false
 
     ClassNameAnalytics(String className) {
         this.className = className
-        isSensorsDataAPI = (className == 'com.sensorsdata.analytics.android.sdk.SensorsDataAPI')
-        isSensorsDataUtils = (className == 'com.sensorsdata.analytics.android.sdk.util.SensorsDataUtils')
-        isOAIDHelper = (className == 'com.sensorsdata.analytics.android.sdk.advert.utils.OaidHelper')
-        isSALog = (className == 'com.sensorsdata.analytics.android.sdk.SALog')
-        isAppWebViewInterface = ((className == 'com.sensorsdata.analytics.android.sdk.AppWebViewInterface')
-                || (className == 'com.sensorsdata.analytics.android.sdk.visual.WebViewVisualInterface'))
+        isSensorsDataAPI = (className == HookConstant.SENSORS_DATA_API)
+        isSensorsDataUtils = (className == HookConstant.SENSORS_DATA_UTILS)
+        isOAIDHelper = (className == HookConstant.OAID_HELPER)
+        isSALog = (className == HookConstant.SA_LOG)
+        isAppWebViewInterface = ((className == HookConstant.APP_JS_INTERFACE)
+                || (className == HookConstant.VISUAL_JS_INTERFACE))
         isKeyboardViewUtil = (className.startsWith(PACKAGE_START) && className.endsWith(KEY_KEYBOARD))
         isSensorsDataVersion = className.endsWith(SensorsDataSDKVersionHelper.VERSION_KEY_SENSORDATA_VERSION_CONFIG)
     }

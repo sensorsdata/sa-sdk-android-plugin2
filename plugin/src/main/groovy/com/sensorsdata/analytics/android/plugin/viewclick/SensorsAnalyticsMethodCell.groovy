@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.sensorsdata.analytics.android.plugin
+package com.sensorsdata.analytics.android.plugin.viewclick
+
+import org.objectweb.asm.MethodVisitor
 
 class SensorsAnalyticsMethodCell {
     /**
@@ -70,5 +72,25 @@ class SensorsAnalyticsMethodCell {
     @Override
     boolean equals(Object cell) {
         return this.name == cell.name && this.desc == cell.desc && this.parent == cell.parent
+    }
+
+    /*
+     * 插入对应的原方法
+     */
+    void visitMethod(MethodVisitor methodVisitor, int opcode, String owner) {
+        for (int i = paramsStart; i < paramsStart + paramsCount; i++) {
+            methodVisitor.visitVarInsn(opcodes.get(i - paramsStart), i)
+        }
+        methodVisitor.visitMethodInsn(opcode, owner, name, desc, false)
+    }
+
+    /*
+     插入 Hook 的方法
+     */
+    void visitHookMethod(MethodVisitor methodVisitor, int opcode, String owner) {
+        for (int i = paramsStart; i < paramsStart + paramsCount; i++) {
+            methodVisitor.visitVarInsn(opcodes.get(i - paramsStart), i)
+        }
+        methodVisitor.visitMethodInsn(opcode, owner, agentName, agentDesc, false)
     }
 }

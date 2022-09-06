@@ -17,17 +17,16 @@
 package com.sensorsdata.analytics.android.plugin
 
 import com.android.build.gradle.BaseExtension
+import com.sensorsdata.analytics.android.plugin.configs.SAConfigHookHelper
 
 class SensorsAnalyticsTransformHelper {
-
     SensorsAnalyticsExtension extension
     BaseExtension android
-    RN_STATE rnState = RN_STATE.NOT_FOUND
-    String rnVersion = ""
-    SensorsAnalyticsSDKHookConfig sensorsAnalyticsHookConfig
+    public RN_STATE rnState = RN_STATE.NOT_FOUND
+    public String rnVersion = ""
     boolean disableSensorsAnalyticsMultiThread
     boolean disableSensorsAnalyticsIncremental
-    boolean isHookOnMethodEnter
+    public boolean isHookOnMethodEnter
     HashSet<String> ignoreClass = new HashSet<>(['keyboard'])
     HashSet<String> exclude = new HashSet<>(['com.sensorsdata.analytics.android.sdk',
                                              'android.support',
@@ -97,34 +96,14 @@ class SensorsAnalyticsTransformHelper {
         if (includePackages != null) {
             include.addAll(includePackages)
         }
-        createSensorsAnalyticsHookConfig()
-    }
-
-    private void createSensorsAnalyticsHookConfig() {
-        sensorsAnalyticsHookConfig = new SensorsAnalyticsSDKHookConfig()
-        List<MetaProperty> metaProperties = SensorsAnalyticsSDKExtension.getMetaClass().properties
-        for (it in metaProperties) {
-            if (it.name == 'class') {
-                continue
-            }
-            if (extension.sdk."${it.name}") {
-                sensorsAnalyticsHookConfig."${it.name}"(it.name)
-            }
-        }
+        SAConfigHookHelper.initSDKConfigCells(extension.sdk)
     }
 
     ClassNameAnalytics analytics(String className) {
         ClassNameAnalytics classNameAnalytics = new ClassNameAnalytics(className)
         if (classNameAnalytics.isSDKFile()) {
-            def cellHashMap = sensorsAnalyticsHookConfig.methodCells
-            cellHashMap.each {
-                key, value ->
-                    def methodCellList = value.get(className.replace('.', '/'))
-                    if (methodCellList != null) {
-                        classNameAnalytics.methodCells.addAll(methodCellList)
-                    }
-            }
-            if (classNameAnalytics.methodCells.size() > 0 || classNameAnalytics.isSensorsDataAPI
+            SAConfigHookHelper.initConfigCellInClass(className)
+            if (SAConfigHookHelper.sClassInConfigCells.size() > 0 || classNameAnalytics.isSensorsDataAPI
                     || (classNameAnalytics.isAppWebViewInterface && (extension.addUCJavaScriptInterface || extension.addXWalkJavaScriptInterface))
                     || classNameAnalytics.isKeyboardViewUtil || classNameAnalytics.isSensorsDataVersion) {
                 classNameAnalytics.isShouldModify = true

@@ -19,6 +19,7 @@ package com.sensorsdata.analytics.android.plugin
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
+import com.sensorsdata.analytics.android.plugin.utils.Logger
 import com.sensorsdata.analytics.android.plugin.utils.VersionUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project

@@ -29,6 +29,8 @@ import com.android.build.api.transform.TransformInvocation
 import com.android.build.api.transform.TransformOutputProvider
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.android.ide.common.internal.WaitableExecutor
+import com.sensorsdata.analytics.android.plugin.utils.Logger
+import com.sensorsdata.analytics.android.plugin.utils.ModuleUtils
 import com.sensorsdata.analytics.android.plugin.utils.VersionUtils
 import com.sensorsdata.analytics.android.plugin.version.SensorsDataSDKVersionHelper
 import groovy.io.FileType
@@ -49,8 +51,8 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.4.9"
-    public static final String MIN_SDK_VERSION = "5.4.3"
+    public static final String VERSION = "3.5.0"
+    public static final String MIN_SDK_VERSION = "6.5.0"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
     // “com.sensorsdata.analytics.android.sdk.SensorsDataAPI” 类所在路径
@@ -185,6 +187,7 @@ class SensorsAnalyticsTransform extends Transform {
         if(!isProjectLibrary) {
             checkSensorsSDK()
         }
+        ModuleUtils.checkModuleStatus(urlClassLoader)
     }
 
     private void checkSensorsSDK() {

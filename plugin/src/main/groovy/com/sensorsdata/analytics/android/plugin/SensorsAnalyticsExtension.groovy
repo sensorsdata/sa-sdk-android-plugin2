@@ -16,6 +16,7 @@
  */
 package com.sensorsdata.analytics.android.plugin
 
+import com.sensorsdata.analytics.android.plugin.configs.SensorsAnalyticsSDKExtension
 import org.gradle.api.Action
 import org.gradle.internal.reflect.Instantiator
 

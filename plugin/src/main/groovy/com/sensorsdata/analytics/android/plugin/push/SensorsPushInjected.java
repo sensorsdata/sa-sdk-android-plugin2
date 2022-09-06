@@ -1,6 +1,6 @@
 package com.sensorsdata.analytics.android.plugin.push;
 
-import com.sensorsdata.analytics.android.plugin.Logger;
+import com.sensorsdata.analytics.android.plugin.utils.Logger;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
