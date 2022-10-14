@@ -51,7 +51,7 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.5.0"
+    public static final String VERSION = "3.5.1"
     public static final String MIN_SDK_VERSION = "6.5.0"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader

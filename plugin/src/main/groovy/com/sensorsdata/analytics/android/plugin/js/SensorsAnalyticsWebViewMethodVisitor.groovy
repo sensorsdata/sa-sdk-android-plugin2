@@ -132,8 +132,8 @@ class SensorsAnalyticsWebViewMethodVisitor extends AdviceAdapter implements Opco
             }
         }
         desc = SensorsAnalyticsUtil.appendDescBeforeGiven(desc, VIEW_DESC)
-        //为保持新 SDK 使用旧版插件问题，会使用新 SDK loadUrl + 2 后缀的方法
-        mv.visitMethodInsn(INVOKESTATIC, SensorsAnalyticsHookConfig.SENSORS_ANALYTICS_API, name + "2", desc, false)
+        //为保持新 SDK 使用旧版插件问题，会使用新 SDK loadUrl后缀的方法
+        mv.visitMethodInsn(INVOKESTATIC, JS_BRIDGE_API, name, desc, false)
         mv.visitLabel(label)
     }
 
