@@ -24,7 +24,7 @@ import org.objectweb.asm.Type
 
 @CompileStatic
 class SensorsAnalyticsUtil {
-    public static final int ASM_VERSION = Opcodes.ASM7
+    public static int ASM_VERSION = Opcodes.ASM7
     private static final HashSet<String> targetFragmentClass = new HashSet()
     private static final HashSet<String> targetMenuMethodDesc = new HashSet()
     private static final HashSet<String> specialClass = new HashSet()
@@ -201,5 +201,25 @@ class SensorsAnalyticsUtil {
 
     static String appendDescBeforeGiven(String givenDesc, String appendDesc) {
         return givenDesc.replaceFirst("\\(", "(" + appendDesc);
+    }
+
+    static void updateASMVersion(String asmVersion){
+        switch (asmVersion){
+            case "ASM6":
+                ASM_VERSION = Opcodes.ASM6
+                break
+            case "ASM7":
+                ASM_VERSION = Opcodes.ASM7
+                break
+            case "ASM8":
+                ASM_VERSION = Opcodes.ASM8
+                break
+            case "ASM9":
+                ASM_VERSION = Opcodes.ASM9
+                break
+            default:
+                ASM_VERSION = Opcodes.ASM7
+                break;
+        }
     }
 }

@@ -87,14 +87,18 @@ public class SensorsAutoTrackMethodVisitor extends AutoTrackMethodVisitor {
             return;
         }
         try {
-            String desc2 = ((Type)bsmArgs[0]).getDescriptor();
+            String owner = bsm.getOwner();
+            if (!"java/lang/invoke/LambdaMetafactory".equals(owner)) {
+                return;
+            }
+            String desc2 = ((Type) bsmArgs[0]).getDescriptor();
             SensorsAnalyticsMethodCell sensorsAnalyticsMethodCell = SensorsAnalyticsHookConfig.LAMBDA_METHODS.get(Type.getReturnType(desc1).getDescriptor() + name1 + desc2);
             if (sensorsAnalyticsMethodCell != null) {
                 Handle it = (Handle) bsmArgs[1];
                 mLambdaMethodCells.put(it.getName() + it.getDesc(), sensorsAnalyticsMethodCell);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.warn("Some exception happened when call visitInvokeDynamicInsn: className: " + mClassName + ", error message: " + e.getLocalizedMessage());
         }
     }
 

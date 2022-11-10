@@ -39,6 +39,8 @@ class SensorsAnalyticsPlugin implements Plugin<Project> {
         boolean disableSensorsAnalyticsIncrementalBuild = Boolean.parseBoolean(properties.getOrDefault("sensorsAnalytics.disableIncrementalBuild", "false"))
         boolean isHookOnMethodEnter = Boolean.parseBoolean(properties.getOrDefault("sensorsAnalytics.isHookOnMethodEnter", "false"))
         boolean isAndroidTv = Boolean.parseBoolean(properties.getOrDefault("sensorsAnalytics.isAndroidTv", "false"))
+        String asmVersion = properties.getOrDefault("sensorsAnalytics.asmVersion", "ASM7")
+        SensorsAnalyticsUtil.updateASMVersion(asmVersion)
 
         if (!disableSensorsAnalyticsPlugin) {
             BaseExtension baseExtension
