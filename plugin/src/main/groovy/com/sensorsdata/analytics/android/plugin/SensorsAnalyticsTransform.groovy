@@ -1,6 +1,6 @@
 /*
  * Created by wangzhuozhou on 2015/08/12.
- * Copyright 2015－2022 Sensors Data Inc.
+ * Copyright 2015－2023 Sensors Data Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ import java.util.jar.JarOutputStream
 
 class SensorsAnalyticsTransform extends Transform {
     private SensorsAnalyticsTransformHelper transformHelper
-    public static final String VERSION = "3.5.3"
+    public static final String VERSION = "3.5.4"
     public static final String MIN_SDK_VERSION = "6.5.3"
     private WaitableExecutor waitableExecutor
     private URLClassLoader urlClassLoader
@@ -139,19 +139,17 @@ class SensorsAnalyticsTransform extends Transform {
         if (waitableExecutor) {
             waitableExecutor.waitForTasksWithQuickFail(true)
         }
-        println("[SensorsAnalytics]: 此次编译共耗时:${System.currentTimeMillis() - startTime}毫秒")
+        Logger.info("[SensorsAnalytics]: 此次编译共耗时:${System.currentTimeMillis() - startTime}毫秒")
     }
 
     private void beforeTransform(TransformInvocation transformInvocation) {
         //打印提示信息
-        Logger.printCopyright()
         Logger.setDebug(transformHelper.extension.debug)
+        Logger.printCopyright()
         transformHelper.onTransform()
-        println("[SensorsAnalytics]: 是否开启多线程编译:${!transformHelper.disableSensorsAnalyticsMultiThread}")
-        println("[SensorsAnalytics]: 是否开启增量编译:${!transformHelper.disableSensorsAnalyticsIncremental}")
-        println("[SensorsAnalytics]: 此次是否增量编译:$transformInvocation.incremental")
-        println("[SensorsAnalytics]: 是否在方法进入时插入代码:${transformHelper.isHookOnMethodEnter}")
-
+        Logger.printPluginConfig(transformHelper.disableSensorsAnalyticsMultiThread,
+                transformHelper.disableSensorsAnalyticsIncremental,
+                transformInvocation.incremental, transformHelper.isHookOnMethodEnter)
         traverseForClassLoader(transformInvocation)
     }
 
@@ -184,7 +182,7 @@ class SensorsAnalyticsTransform extends Transform {
         transformHelper.urlClassLoader = urlClassLoader
         checkRNState()
         VersionUtils.loadAndroidSDKVersion(urlClassLoader)
-        if(!isProjectLibrary) {
+        if (!isProjectLibrary) {
             checkSensorsSDK()
         }
         ModuleUtils.checkModuleStatus(urlClassLoader)

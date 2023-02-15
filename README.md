@@ -20,18 +20,18 @@ __Gradle 编译环境（Android Studio）__
 ```android
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.2.0'
         //添加 android-gradle-plugin 依赖
-        classpath 'com.sensorsdata.analytics.android:android-gradle-plugin2:3.4.6'
+        classpath 'com.sensorsdata.analytics.android:android-gradle-plugin2:3.5.4'
     }
 }
 
 allprojects {
     repositories {
-        jcenter()
+        mavenCentral()
     }
 }
 ```
@@ -45,7 +45,7 @@ apply plugin: 'com.sensorsdata.analytics.android'
 
 dependencies {
    //添加 Sensors Analytics SDK 依赖
-   compile 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK:6.2.0'
+   implementation 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK:6.6.3'
 }
 ```
 
@@ -84,7 +84,7 @@ See our [full manual](http://www.sensorsdata.cn/manual/android_sdk.html)
 
 ## License
 
-Copyright 2015－2022 Sensors Data Inc.
+Copyright 2015－2023 Sensors Data Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

@@ -1,6 +1,6 @@
 /*
  * Created by wangzhuozhou on 2015/08/12.
- * Copyright 2015－2022 Sensors Data Inc.
+ * Copyright 2015－2023 Sensors Data Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,19 +33,31 @@ class Logger {
      * 打印提示信息
      */
     static void printCopyright() {
-        println()
-        println("${LogUI.C_BLACK_GREEN.value}" + "####################################################################" + "${LogUI.E_NORMAL.value}")
-        println("${LogUI.C_BLACK_GREEN.value}" + "###                                                              ###" + "${LogUI.E_NORMAL.value}")
-        println("${LogUI.C_BLACK_GREEN.value}" + "###                                                              ###" + "${LogUI.E_NORMAL.value}")
-        println("${LogUI.C_BLACK_GREEN.value}" + "###          欢迎使用 SensorsAnalytics® (v" + SensorsAnalyticsTransform.VERSION + ")编译插件         ###" + "${LogUI.E_NORMAL.value}")
-        println("${LogUI.C_BLACK_GREEN.value}" + "###               使用过程中碰到任何问题请联系我们               ###" + "${LogUI.E_NORMAL.value}")
-        println("${LogUI.C_BLACK_GREEN.value}" + "###                      QQ 群号：785122381                      ###" + "${LogUI.E_NORMAL.value}")
-        println("${LogUI.C_BLACK_GREEN.value}" + "###                         GitHub 地址：                        ###" + "${LogUI.E_NORMAL.value}")
-        println("${LogUI.C_BLACK_GREEN.value}" + "###     https://github.com/sensorsdata/sa-sdk-android-plugin2    ###" + "${LogUI.E_NORMAL.value}")
-        println("${LogUI.C_BLACK_GREEN.value}" + "###                                                              ###" + "${LogUI.E_NORMAL.value}")
-        println("${LogUI.C_BLACK_GREEN.value}" + "###                                                              ###" + "${LogUI.E_NORMAL.value}")
-        println("${LogUI.C_BLACK_GREEN.value}" + "####################################################################" + "${LogUI.E_NORMAL.value}")
-        println()
+        if (debug) {
+            println()
+            println("${LogUI.C_BLACK_GREEN.value}" + "####################################################################" + "${LogUI.E_NORMAL.value}")
+            println("${LogUI.C_BLACK_GREEN.value}" + "###                                                              ###" + "${LogUI.E_NORMAL.value}")
+            println("${LogUI.C_BLACK_GREEN.value}" + "###                                                              ###" + "${LogUI.E_NORMAL.value}")
+            println("${LogUI.C_BLACK_GREEN.value}" + "###          欢迎使用 SensorsAnalytics® (v" + SensorsAnalyticsTransform.VERSION + ")编译插件         ###" + "${LogUI.E_NORMAL.value}")
+            println("${LogUI.C_BLACK_GREEN.value}" + "###               使用过程中碰到任何问题请联系我们               ###" + "${LogUI.E_NORMAL.value}")
+            println("${LogUI.C_BLACK_GREEN.value}" + "###                      QQ 群号：785122381                      ###" + "${LogUI.E_NORMAL.value}")
+            println("${LogUI.C_BLACK_GREEN.value}" + "###                         GitHub 地址：                        ###" + "${LogUI.E_NORMAL.value}")
+            println("${LogUI.C_BLACK_GREEN.value}" + "###     https://github.com/sensorsdata/sa-sdk-android-plugin2    ###" + "${LogUI.E_NORMAL.value}")
+            println("${LogUI.C_BLACK_GREEN.value}" + "###                                                              ###" + "${LogUI.E_NORMAL.value}")
+            println("${LogUI.C_BLACK_GREEN.value}" + "###                                                              ###" + "${LogUI.E_NORMAL.value}")
+            println("${LogUI.C_BLACK_GREEN.value}" + "####################################################################" + "${LogUI.E_NORMAL.value}")
+            println()
+        }
+    }
+
+    static void printPluginConfig(boolean disableSensorsAnalyticsMultiThread, boolean disableSensorsAnalyticsIncremental,
+                                  boolean isIncremental, boolean isHookOnMethodEnter) {
+        if (debug) {
+            println("[SensorsAnalytics]: 是否开启多线程编译:${!disableSensorsAnalyticsMultiThread}")
+            println("[SensorsAnalytics]: 是否开启增量编译:${!disableSensorsAnalyticsIncremental}")
+            println("[SensorsAnalytics]: 此次是否增量编译:$isIncremental")
+            println("[SensorsAnalytics]: 是否在方法进入时插入代码:$isHookOnMethodEnter")
+        }
     }
 
     /**

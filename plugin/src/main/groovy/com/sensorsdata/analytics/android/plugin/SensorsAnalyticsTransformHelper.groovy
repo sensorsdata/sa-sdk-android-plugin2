@@ -1,6 +1,6 @@
 /*
  * Created by renqingyou on 2018/12/01.
- * Copyright 2015－2022 Sensors Data Inc.
+ * Copyright 2015－2023 Sensors Data Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.sensorsdata.analytics.android.plugin
 
 import com.android.build.gradle.BaseExtension
 import com.sensorsdata.analytics.android.plugin.configs.SAConfigHookHelper
+import com.sensorsdata.analytics.android.plugin.utils.Logger
 
 class SensorsAnalyticsTransformHelper {
     SensorsAnalyticsExtension extension
@@ -87,7 +88,7 @@ class SensorsAnalyticsTransformHelper {
     }
 
     void onTransform() {
-        println("sensorsAnalytics {\n" + extension + "\n}")
+        Logger.info("sensorsAnalytics {\n" + extension + "\n}")
         ArrayList<String> excludePackages = extension.exclude
         if (excludePackages != null) {
             exclude.addAll(excludePackages)
