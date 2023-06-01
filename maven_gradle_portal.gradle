@@ -1,0 +1,29 @@
+apply plugin: 'com.gradle.plugin-publish'
+
+group = 'com.sensorsdata.analytics.android'
+version= rootProject.ext.pluginVersion
+
+pluginBundle {  // Removed in Gradle 8+
+    website = 'https://github.com/sensorsdata/sa-sdk-android-plugin2'
+    vcsUrl = 'https://github.com/sensorsdata/sa-sdk-android-plugin2.git'
+    tags = ['SensorsData', 'Analytics']
+}
+
+gradlePlugin {
+    plugins {
+        sdkChecker {
+            id = 'com.sensorsdata.analytics.android'
+            implementationClass = "${id}.plugin.SensorsAnalyticsPlugin"
+            displayName = 'SensorsData Android SDK Plugin'
+            description = "The official Android SDK Gradle Plugin for Sensors Analytics."
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url ='../repo'
+        }
+    }
+}

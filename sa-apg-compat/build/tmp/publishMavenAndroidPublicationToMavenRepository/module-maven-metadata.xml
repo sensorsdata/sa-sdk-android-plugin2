@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>com.sensorsdata.analytics.android</groupId>
+  <artifactId>sa-apg-compat</artifactId>
+  <versioning>
+    <latest>4.0.0-beta</latest>
+    <release>4.0.0-beta</release>
+    <versions>
+      <version>4.0.0-beta</version>
+    </versions>
+    <lastUpdated>20230601063416</lastUpdated>
+  </versioning>
+</metadata>

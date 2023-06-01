@@ -1,0 +1,119 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+version = rootProject.ext.pluginVersion
+def groupId_maven = 'com.sensorsdata.analytics.android'
+def artifactId_maven = project.name
+if (project.name == "gradle_portal_plugin") {
+    artifactId_maven = "com.sensorsdata.analytics.android.gradle.plugin"
+} else if (project.name == "sa-gradle-plugin") {
+    artifactId_maven = "android-gradle-plugin2"
+}
+
+
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+javadoc {
+    options {
+        encoding "UTF-8"
+        charSet 'UTF-8'
+    }
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+
+publishing {
+    publications {
+        mavenAndroid(MavenPublication) {
+            groupId = groupId_maven
+            artifactId = artifactId_maven
+            version = version
+            artifact sourceJar
+            artifact javadocJar
+            artifact("build/libs/${project.name}-${version}.jar")
+            pom {
+                packaging 'jar'
+                name = 'The official Android SDK Gradle Plugin for Sensors Analytics.'
+                description = 'The official Android SDK Gradle Plugin for Sensors Analytics.'
+                url = 'The official Android SDK Gradle Plugin for Sensors Analytics.'
+                licenses {
+                    license {
+                        name = 'The Apache Software License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'zhangwei'
+                        name = 'zhangwei'
+                        email = 'zhangwei@sensorsdata.com'
+                    }
+                    developer {
+                        id = 'dengshiwei'
+                        name = 'dengshiwei'
+                        email = 'dengshiwei@sensorsdata.com'
+                    }
+                }
+                scm {
+                    connection = 'https://github.com/sensorsdata/sa-sdk-android-plugin2'
+                    developerConnection = 'https://github.com/sensorsdata/sa-sdk-android-plugin2.git'
+                    url = 'https://github.com/sensorsdata/sa-sdk-android-plugin2'
+                }
+                pom.withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+                    project.configurations.all { configuration ->
+                        def name = configuration.name
+                        if (name == 'implementation' || name == 'releaseImplementation') {
+                            configuration.allDependencies.each {
+                                if (it.group != null && it.name != "unspecified" && it.version != null) {
+                                    String groupId = it.group
+                                    def artifactId = it.name
+                                    def version = it.version
+                                    if (groupId.startsWith("sa-sdk-android")) {
+                                        groupId = groupId_maven
+                                    }
+                                    if (artifactId == "sa-gradle-plugin") {
+                                        artifactId = "android-gradle-plugin2"
+                                    }
+                                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                                    dependencyNode.appendNode('groupId', groupId)
+                                    dependencyNode.appendNode('artifactId', artifactId)
+                                    dependencyNode.appendNode('version', version)
+                                    dependencyNode.appendNode('scope', 'compile')
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        Properties properties = new Properties()
+        properties.load(project.rootProject.file('local.properties').newDataInputStream())
+        def mavenUser = properties.getProperty("maven.user")
+        def mavenPassword = properties.getProperty("maven.password")
+        maven {
+            url = '../repo'
+//            url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+//            credentials {
+//                username mavenUser
+//                password mavenPassword
+//            }
+        }
+    }
+
+}
+
+// 对 mavenAndroid 发布内容进行签名
+signing {
+    sign publishing.publications.mavenAndroid
+}

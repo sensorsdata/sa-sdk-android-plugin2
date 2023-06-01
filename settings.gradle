@@ -1,1 +1,29 @@
-include ':plugin'
+pluginManagement {
+    repositories {
+        maven {
+            url 'repo'
+        }
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        maven {
+            url 'repo'
+        }
+        google()
+        mavenCentral()
+
+    }
+}
+rootProject.name = "sa-sdk-android-plugin2"
+include ':demo'
+include ':sa-agp-compat'
+include ':sa-agp-api'
+include ':sa-agp-v7_3'
+include ':sa-agp-legacy'
+include ':sa-gradle-plugin'
+include ':gradle_portal_plugin'

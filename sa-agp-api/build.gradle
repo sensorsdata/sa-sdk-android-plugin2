@@ -1,0 +1,18 @@
+plugins {
+    id 'java-library'
+    id 'org.jetbrains.kotlin.jvm'
+}
+apply from:"../maven.gradle"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    implementation project(path: ':sa-agp-legacy')
+    api project(path: ':sa-agp-compat')
+    //    implementation project(path: ':sa-agp-v8_0')
+    implementation project(path: ':sa-agp-v7_3')
+
+}

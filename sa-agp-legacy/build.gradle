@@ -1,0 +1,18 @@
+plugins {
+    id 'java-library'
+    id 'org.jetbrains.kotlin.jvm'
+}
+apply from:"../maven.gradle"
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+
+dependencies {
+    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'commons-codec:commons-codec:1.15'
+    implementation project(path: ':sa-agp-compat')
+    compileOnly("com.android.tools.build:gradle-api:${rootProject.ext.agpVersion}")
+    compileOnly("com.android.tools.build:gradle:${rootProject.ext.agpVersion}")
+}

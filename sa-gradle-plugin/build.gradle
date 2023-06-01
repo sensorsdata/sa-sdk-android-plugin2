@@ -1,0 +1,30 @@
+plugins {
+    id 'java-library'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+def publishMaven = true
+if (publishMaven) {
+    apply from:"../maven.gradle"
+} else {
+    apply from:"../maven_gradle_portal.gradle"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    implementation project(path: ':sa-agp-api')
+    compileOnly("com.android.tools.build:gradle-api:${rootProject.ext.agpVersion}")
+    compileOnly("com.android.tools.build:gradle:${rootProject.ext.agpVersion}")
+    implementation 'org.ow2.asm:asm:9.1'
+    implementation 'org.ow2.asm:asm-commons:9.1'
+    implementation 'org.ow2.asm:asm-analysis:9.1'
+    implementation 'org.ow2.asm:asm-util:9.1'
+    implementation 'org.ow2.asm:asm-tree:9.1'
+    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'com.google.code.gson:gson:2.10'
+}
+
