@@ -5,13 +5,14 @@ import com.sensorsdata.analytics.android.plugin.extension.SAExtension
 import com.sensorsdata.analytics.android.plugin.visitor.SensorsAnalyticsMethodCell
 import org.objectweb.asm.ClassVisitor
 import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 
 class SAConfigHookHelper() {
     // 当前 class 文件对应的控制项，单个 class 文件共用
-    private var sClassInConfigCells = ArrayList<SensorsAnalyticsMethodCell>()
+    private var sClassInConfigCells = CopyOnWriteArrayList<SensorsAnalyticsMethodCell>()
 
     // 扫描当前类命中的控制项
-    private val mHookMethodCells = ArrayList<SensorsAnalyticsMethodCell>()
+    private val mHookMethodCells = CopyOnWriteArrayList<SensorsAnalyticsMethodCell>()
 
     fun initConfigCellInClass(className: String) {
         sClassInConfigCells.clear()

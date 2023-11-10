@@ -139,12 +139,10 @@ class SensorsAutoTrackMethodVisitor(
                 val sensorsAnalyticsMethodCell: SensorsAnalyticsMethodCell? =
                     SensorsFragmentHookConfig.FRAGMENT_METHODS[nameDesc]
                 localIds = ArrayList()
-                val types = Type.getArgumentTypes(
-                    desc
-                )
-                for (i in 1 until sensorsAnalyticsMethodCell!!.paramsCount) {
-                    val localId = newLocal(types[i - 1])
-                    mMethodVisitor.visitVarInsn(sensorsAnalyticsMethodCell.opcodes.get(i), i)
+                val types = Type.getArgumentTypes(sensorsAnalyticsMethodCell?.agentDesc)
+                for (i in 0 until sensorsAnalyticsMethodCell!!.paramsCount) {
+                    val localId = newLocal(types[i])
+                    mMethodVisitor.visitVarInsn(sensorsAnalyticsMethodCell.opcodes[i], i)
                     mMethodVisitor.visitVarInsn(
                         SAUtils.convertOpcodes(
                             sensorsAnalyticsMethodCell.opcodes.get(i)
@@ -337,11 +335,11 @@ class SensorsAutoTrackMethodVisitor(
                 SensorsFragmentHookConfig.FRAGMENT_METHODS[nameDesc]
             if (sensorsAnalyticsMethodCell != null) {
                 visitedFragMethods.add(nameDesc)
-                mMethodVisitor.visitVarInsn(ALOAD, 0)
-                for (i in 1 until sensorsAnalyticsMethodCell.paramsCount) {
+//                mMethodVisitor.visitVarInsn(ALOAD, 0)
+                for (i in 0 until sensorsAnalyticsMethodCell.paramsCount) {
                     mMethodVisitor.visitVarInsn(
-                        sensorsAnalyticsMethodCell.opcodes.get(i),
-                        localIds!![i - 1]
+                        sensorsAnalyticsMethodCell.opcodes[i],
+                        localIds!![i]
                     )
                 }
                 mMethodVisitor.visitMethodInsn(

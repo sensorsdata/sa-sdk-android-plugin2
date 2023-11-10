@@ -30,7 +30,7 @@ object SAUtils {
         val maxLength = Math.max(v1Array.size, v2Array.size);
         var str1: String?
         var str2: String?
-        for (index in 0..maxLength) {
+        for (index in 0 until maxLength) {
             if (v1Array.size > index) {
                 str1 = v1Array[index]
             } else {
