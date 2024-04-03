@@ -24,7 +24,6 @@ dependencies {
     implementation 'org.ow2.asm:asm-analysis:9.1'
     implementation 'org.ow2.asm:asm-util:9.1'
     implementation 'org.ow2.asm:asm-tree:9.1'
-    implementation 'commons-io:commons-io:2.11.0'
     implementation 'com.google.code.gson:gson:2.10'
 }
 

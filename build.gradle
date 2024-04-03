@@ -11,5 +11,5 @@ plugins {
 
 ext {
     agpVersion = '7.3.1' //used for compile
-    pluginVersion = '4.0.1' //plugin version
+    pluginVersion = '4.0.2' //plugin version
 }

@@ -3,6 +3,7 @@ package com.sensorsdata.analytics.android.plugin.viewclick
 import com.sensorsdata.analytics.android.plugin.ClassNameAnalytics
 import com.sensorsdata.analytics.android.plugin.configs.SensorsAnalyticsHookConfig
 import com.sensorsdata.analytics.android.plugin.fragment.SensorsFragmentHookConfig
+import com.sensorsdata.analytics.android.plugin.manager.SAModule
 import com.sensorsdata.analytics.android.plugin.manager.SAPackageManager
 import com.sensorsdata.analytics.android.plugin.manager.SAPluginManager
 import com.sensorsdata.analytics.android.plugin.utils.Logger.warn
@@ -460,7 +461,7 @@ class SensorsAutoTrackMethodVisitor(
             isHasTracked = true
             return
         }
-        if (handleRN()) {
+        if (pluginManager.isModuleEnable(SAModule.REACT_NATIVE) && handleRN()) {
             isHasTracked = true
             return
         }

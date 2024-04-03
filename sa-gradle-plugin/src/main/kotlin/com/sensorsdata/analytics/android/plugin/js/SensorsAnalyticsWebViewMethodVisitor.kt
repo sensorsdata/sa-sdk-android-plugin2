@@ -81,11 +81,6 @@ class SensorsAnalyticsWebViewMethodVisitor(
                     val ownerPosition = newLocal(Type.getObjectType(owner))
                     storeLocal(ownerPosition)
                     positionList.add(ownerPosition)
-                    //将局部变量表中的数据压入操作数栈中触发原有的方法
-                    positionList.reversed().forEach { tmp ->
-                        loadLocal(tmp)
-                    }
-                    super.visitMethodInsn(opcode, owner, name, desc, itf)
                     //处理 Dcloud 中 WebView 的写法，缩小范围为 AdaWebView
                     if (isDCloud(owner, classNameAnalytics.className)) {
                         hookDCloud(positionList, name, desc)
@@ -97,6 +92,11 @@ class SensorsAnalyticsWebViewMethodVisitor(
                         val newDesc = SAUtils.appendDescBeforeGiven(desc, VIEW_DESC)
                         mv.visitMethodInsn(INVOKESTATIC, JS_BRIDGE_API, name, newDesc, false)
                     }
+                    //将局部变量表中的数据压入操作数栈中触发原有的方法
+                    positionList.reversed().forEach { tmp ->
+                        loadLocal(tmp)
+                    }
+                    super.visitMethodInsn(opcode, owner, name, desc, itf)
                     return
                 }
             }

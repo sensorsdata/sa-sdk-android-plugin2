@@ -1,5 +1,6 @@
 package com.sensorsdata.analytics.android.plugin.manager
 
+import com.sensorsdata.analytics.android.gradle.AGPVersion
 import com.sensorsdata.analytics.android.plugin.configs.SAConfigHookHelper
 import com.sensorsdata.analytics.android.plugin.extension.SAExtension
 import com.sensorsdata.analytics.android.plugin.utils.Logger
@@ -80,6 +81,9 @@ class SAPluginManager(private val project: Project) {
             isAndroidTV =
                 (getOrDefault("sensorsAnalytics.isAndroidTv", "false") as String).toBoolean()
             asmVersion = getOrDefault("sensorsAnalytics.asmVersion", "ASM7") as String
+            if (AGPVersion.CURRENT_AGP_VERSION >= AGPVersion(8, 0, 0)) {
+                asmVersion = "ASM9"
+            }
         }
     }
 
@@ -107,5 +111,5 @@ class SAPluginManager(private val project: Project) {
 }
 
 enum class SAModule {
-    AUTOTRACK, PUSH, WEB_VIEW
+    AUTOTRACK, PUSH, WEB_VIEW, REACT_NATIVE
 }

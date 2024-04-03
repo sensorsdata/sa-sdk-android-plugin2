@@ -10,8 +10,8 @@ java {
 
 
 dependencies {
-    implementation 'commons-io:commons-io:2.11.0'
-    implementation 'commons-codec:commons-codec:1.15'
+    implementation 'commons-io:commons-io:2.4'
+    implementation 'commons-codec:commons-codec:1.10'
     implementation project(path: ':sa-agp-compat')
     compileOnly("com.android.tools.build:gradle-api:${rootProject.ext.agpVersion}")
     compileOnly("com.android.tools.build:gradle:${rootProject.ext.agpVersion}")

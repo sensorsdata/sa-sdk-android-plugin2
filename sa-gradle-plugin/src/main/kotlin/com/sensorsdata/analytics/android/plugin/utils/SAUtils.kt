@@ -1,8 +1,6 @@
 package com.sensorsdata.analytics.android.plugin.utils
 
-import org.apache.commons.io.IOUtils
 import org.objectweb.asm.Opcodes
-import java.io.InputStream
 
 object SAUtils {
     fun isPublic(access: Int): Boolean {
@@ -52,16 +50,6 @@ object SAUtils {
             }
         }
         return 0
-    }
-
-    fun toByteArrayAndAutoCloseStream(input: InputStream): ByteArray {
-        try {
-            return input.readBytes()
-        } catch (e: Exception) {
-            throw e
-        } finally {
-            IOUtils.closeQuietly(input)
-        }
     }
 
     /**
